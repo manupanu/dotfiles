@@ -1,0 +1,4 @@
+- link:
+    ~/.gitconfig:
+      source: git/gitconfig-windows
+      safe_force: true
