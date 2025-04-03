@@ -5,10 +5,12 @@ This repository helps manage configuration files (dotfiles), install software pa
 ## Features
 
 - **Dotfile Management:** Symlinks (Linux/macOS) or copies (Windows) configuration files based on `links.conf`.
-- **Add Dotfiles:** Copies existing files/directories into the repository structure and automatically adds the corresponding entry to `links.conf`.
-- **Software Installation:** Installs packages using native package managers (Homebrew, Winget, APT, Pacman) from predefined lists.
-- **Font Installation:** Copies fonts from a common directory to the system's user font location.
-- **Task Selection:** Allows running specific tasks (dotfiles, software, fonts, add) or all installation/linking tasks at once.
+- **Add Dotfiles:** Copies existing files/directories into the repository and automatically updates `links.conf`.
+- **Software Installation:** Installs packages using native package managers (Winget, Homebrew, APT, Pacman) from predefined lists.
+- **Software Update:** Updates installed packages using the system's package manager.
+- **Font Installation:** Copies fonts from a common directory to the user's font location.
+- **Task Selection:** Allows running specific tasks (`dotfiles`, `software`, `update`, `fonts`, `add`) or `all` install/link tasks.
+- **Dry Run Mode:** Allows previewing changes without modifying the system using the `-DryRun` (PowerShell) or `-n` (Bash) flag.
 
 ## Configuration
 
@@ -75,15 +77,17 @@ These tasks install software, fonts, or link/copy dotfiles specified in `links.c
 -   **Linux / macOS (Bash):**
     ```bash
     # Run all install/link tasks (dotfiles, software, fonts)
-    ./mdm.sh -t all
-    # Or simply run without -t (defaults to all)
     ./mdm.sh
 
     # Run only specific task (dotfiles, software, fonts)
     ./mdm.sh -t software
     ./mdm.sh -t dotfiles
+
+    # Preview changes without executing (Dry Run)
+    ./mdm.sh -n
+    ./mdm.sh -t software -n
     ```
-    *Note: `sudo` access may be required for installing software (`apt`/`pacman`).*
+    *Note: `sudo` access may be required for installing/updating software (`apt`/`pacman`).*
 
 -   **Windows (PowerShell):**
     ```powershell
@@ -91,15 +95,17 @@ These tasks install software, fonts, or link/copy dotfiles specified in `links.c
     # Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
 
     # Run all install/link tasks (dotfiles, software, fonts)
-    .\mdm.ps1 -Task all
-    # Or simply run without -Task (defaults to all)
     .\mdm.ps1
 
     # Run only specific task (dotfiles, software, fonts)
     .\mdm.ps1 -Task software
     .\mdm.ps1 -Task dotfiles
+
+    # Preview changes without executing (Dry Run)
+    .\mdm.ps1 -DryRun
+    .\mdm.ps1 -Task software -DryRun
     ```
-    *Note: Running as Administrator might be necessary for the `software` task (winget).*
+    *Note: Running as Administrator might be necessary for the `software` or `update` tasks (winget). The script will attempt to relaunch with elevation if needed.*
 
 ### Adding a New Dotfile
 
@@ -127,6 +133,38 @@ Use the `add` task to copy an existing file or directory from your system into t
 
     # Example: Add PowerShell profile
     .\mdm.ps1 -Task add -SourcePath ~\Documents\PowerShell\Microsoft.PowerShell_profile.ps1 -RepoPath modules/windows/powershell/Microsoft.PowerShell_profile.ps1
+    ```
+
+**Arguments for `add` task:**
+
+-   `-s` / `-SourcePath`: The full path to the existing file or directory on your system that you want to manage. Use `~` for your home directory if desired.
+-   `-r` / `-RepoPath`: The relative path within *this* repository where the file/directory should be stored (e.g., `modules/common/toolname`, `modules/windows/config.txt`). Do not use leading slashes or absolute paths here.
+
+The `add` task will:
+1.  Copy the item from `<path_on_system>` to `<repo_root>/<relative_path_in_repo>`.
+2.  Append a line to `links.conf` like: `<relative_path_in_repo>:<path_on_system> [all]`. It automatically converts the system path to use `~` if it's within your home directory.
+3.  You may need to manually edit `links.conf` afterwards if you want to restrict the dotfile to specific operating systems (e.g., change `[all]` to `[linux,macos]`).
+
+### Updating Software
+
+Use the `update` task to update installed packages using the system's package manager.
+
+-   **Linux / macOS (Bash):**
+    ```bash
+    # Update packages (requires sudo for Linux)
+    ./mdm.sh -t update
+
+    # Preview packages that would be updated (Dry Run)
+    ./mdm.sh -t update -n
+    ```
+
+-   **Windows (PowerShell):**
+    ```powershell
+    # Update packages (requires Admin rights)
+    .\mdm.ps1 -Task update
+
+    # Preview packages that would be updated (Dry Run)
+    .\mdm.ps1 -Task update -DryRun
     ```
 
 **Arguments for `add` task:**

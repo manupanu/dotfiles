@@ -14,6 +14,9 @@ esac
 REPO_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 CONFIG_FILE="$REPO_ROOT/links.conf"
 
+# Global flag for Dry Run mode
+DRY_RUN=false
+
 # --- Function Definitions ---
 
 manage_dotfiles() {
@@ -90,18 +93,26 @@ manage_dotfiles() {
         # Create target directory if it doesn't exist
         if [ ! -d "$target_dir" ]; then
             echo "Creating directory: $target_dir"
-            mkdir -p "$target_dir"
-            if [ $? -ne 0 ]; then
-                echo "Error: Failed to create directory $target_dir. Skipping."
-                continue
+            if ! $DRY_RUN; then
+                mkdir -p "$target_dir"
+                if [ $? -ne 0 ]; then
+                    echo "Error: Failed to create directory $target_dir. Skipping." >&2
+                    continue
+                fi
+            else
+                echo "DRY RUN: Would create directory $target_dir"
             fi
         fi
 
         # Create symbolic link (force overwrite, no dereference)
         echo "Linking $expanded_target_path -> $abs_source_path"
-        ln -sfn "$abs_source_path" "$expanded_target_path"
-        if [ $? -ne 0 ]; then
-            echo "Error: Failed to link $expanded_target_path. Check permissions."
+        if ! $DRY_RUN; then
+            ln -sfn "$abs_source_path" "$expanded_target_path"
+            if [ $? -ne 0 ]; then
+                echo "Error: Failed to link $expanded_target_path. Check permissions." >&2
+            fi
+        else
+            echo "DRY RUN: Would link $expanded_target_path -> $abs_source_path"
         fi
 
     done < "$CONFIG_FILE"
@@ -123,12 +134,12 @@ install_software() {
             return 0 # Not an error, just nothing to install
         fi
         echo "Updating Homebrew..."
-        brew update
+        if ! $DRY_RUN; then brew update; else echo "DRY RUN: Would run brew update"; fi
         echo "Installing packages from $software_list..."
         while IFS= read -r package || [[ -n "$package" ]]; do
             [[ -z "$package" || "$package" =~ ^# ]] && continue
             echo "Installing $package..."
-            brew install "$package"
+            if ! $DRY_RUN; then brew install "$package"; else echo "DRY RUN: Would install brew package '$package'"; fi
         done < "$software_list"
 
     elif [[ "$CURRENT_OS" == "linux" ]]; then
@@ -151,9 +162,9 @@ install_software() {
 
         echo "Updating package manager ($pkg_manager)..."
         if [[ "$pkg_manager" == "apt" ]]; then
-            sudo apt update
+            if ! $DRY_RUN; then sudo apt update; else echo "DRY RUN: Would run sudo apt update"; fi
         elif [[ "$pkg_manager" == "pacman" ]]; then
-            sudo pacman -Syu --noconfirm
+            if ! $DRY_RUN; then sudo pacman -Syu --noconfirm; else echo "DRY RUN: Would run sudo pacman -Syu --noconfirm"; fi
         fi
 
         echo "Installing packages from $software_list..."
@@ -161,9 +172,9 @@ install_software() {
             [[ -z "$package" || "$package" =~ ^# ]] && continue
             echo "Installing $package..."
             if [[ "$pkg_manager" == "apt" ]]; then
-                sudo apt install -y "$package"
+                if ! $DRY_RUN; then sudo apt install -y "$package"; else echo "DRY RUN: Would install apt package '$package'"; fi
             elif [[ "$pkg_manager" == "pacman" ]]; then
-                sudo pacman -S --noconfirm "$package"
+                if ! $DRY_RUN; then sudo pacman -S --noconfirm "$package"; else echo "DRY RUN: Would install pacman package '$package'"; fi
             fi
         done < "$software_list"
     else
@@ -193,20 +204,27 @@ install_fonts() {
     fi
 
     echo "Ensuring font directory exists: $font_target_dir"
-    mkdir -p "$font_target_dir"
+    if ! $DRY_RUN; then mkdir -p "$font_target_dir"; else echo "DRY RUN: Would ensure font directory exists: $font_target_dir"; fi
 
     echo "Copying fonts from $font_source_dir to $font_target_dir..."
     # Use cp -a to preserve attributes if possible, overwrite existing
-    cp -f "$font_source_dir"/* "$font_target_dir/"
-    if [ $? -ne 0 ]; then
-       echo "Error: Failed to copy fonts."
-       # Decide if this is fatal? Probably not.
+    if ! $DRY_RUN; then
+        cp -f "$font_source_dir"/* "$font_target_dir/"
+        if [ $? -ne 0 ]; then
+           echo "Error: Failed to copy fonts." >&2
+           # Decide if this is fatal? Probably not.
+        fi
+    else
+         # Simulate copying for dry run message
+         for f in "$font_source_dir"/*; do
+             echo "DRY RUN: Would copy $(basename "$f") to $font_target_dir/"
+         done
     fi
 
     if [[ "$CURRENT_OS" == "linux" ]]; then
         echo "Updating font cache..."
         if command -v fc-cache &> /dev/null; then
-            fc-cache -fv
+            if ! $DRY_RUN; then fc-cache -fv; else echo "DRY RUN: Would run fc-cache -fv"; fi
         else
             echo "Warning: fc-cache command not found. Font cache not updated."
         fi
@@ -243,10 +261,14 @@ add_dotfile() {
     # Create parent directories in repo if they don't exist
     if [ ! -d "$repo_dest_dir" ]; then
         echo "Creating repository directory: $repo_dest_dir"
-        mkdir -p "$repo_dest_dir"
-        if [ $? -ne 0 ]; then
-            echo "Error: Failed to create repository directory $repo_dest_dir." >&2
-            return 1
+        if ! $DRY_RUN; then
+            mkdir -p "$repo_dest_dir"
+            if [ $? -ne 0 ]; then
+                echo "Error: Failed to create repository directory $repo_dest_dir." >&2
+                return 1
+            fi
+        else
+            echo "DRY RUN: Would create repository directory $repo_dest_dir"
         fi
     fi
 
@@ -256,10 +278,14 @@ add_dotfile() {
         copy_action="Copying directory"
     fi
     echo "$copy_action from '$source_path' to '$abs_repo_dest_path'"
-    cp -r "$source_path" "$abs_repo_dest_path"
-    if [ $? -ne 0 ]; then
-        echo "Error: Failed to copy to repository path $abs_repo_dest_path." >&2
-        return 1
+    if ! $DRY_RUN; then
+        cp -r "$source_path" "$abs_repo_dest_path"
+        if [ $? -ne 0 ]; then
+            echo "Error: Failed to copy to repository path $abs_repo_dest_path." >&2
+            return 1
+        fi
+    else
+        echo "DRY RUN: Would $copy_action from '$source_path' to '$abs_repo_dest_path'"
     fi
 
     # Normalize the original source path for links.conf (replace $HOME with ~)
@@ -276,21 +302,73 @@ add_dotfile() {
 
     echo "Adding entry to $CONFIG_FILE: $new_line"
 
-    # Check if the file ends with a newline, add one if not (optional, for cleaner appending)
-    if [ -s "$CONFIG_FILE" ] && [ "$(tail -c 1 "$CONFIG_FILE")" != "" ]; then
-        echo "" >> "$CONFIG_FILE"
-    fi
+    if ! $DRY_RUN; then
+        # Check if the file ends with a newline, add one if not (optional, for cleaner appending)
+        if [ -s "$CONFIG_FILE" ] && [ "$(tail -c 1 "$CONFIG_FILE")" != "" ]; then
+            echo "" >> "$CONFIG_FILE"
+        fi
 
-    echo "$new_line" >> "$CONFIG_FILE"
-    if [ $? -ne 0 ]; then
-        echo "Error: Failed to update $CONFIG_FILE." >&2
-        # Consider attempting to revert the file copy here? For now, just error out.
-        return 1
+        echo "$new_line" >> "$CONFIG_FILE"
+        if [ $? -ne 0 ]; then
+            echo "Error: Failed to update $CONFIG_FILE." >&2
+            # Consider attempting to revert the file copy here? For now, just error out.
+            return 1
+        fi
+    else
+         echo "DRY RUN: Would add line '$new_line' to $CONFIG_FILE"
     fi
 
     echo "Dotfile '$source_path' added successfully."
     echo "You may want to manually edit '$CONFIG_FILE' to adjust OS specificity (currently '[all]')."
     return 0
+}
+
+update_software() {
+    echo "--- Updating Software ---"
+    local pkg_manager=""
+
+    if [[ "$CURRENT_OS" == "macos" ]]; then
+        if ! command -v brew &> /dev/null; then
+            echo "Error: Homebrew (brew) not found." >&2
+            return 1
+        fi
+        echo "Updating Homebrew and upgrading packages..."
+        if ! $DRY_RUN; then
+             brew update && brew upgrade
+        else
+             echo "DRY RUN: Would run 'brew update && brew upgrade'"
+        fi
+
+    elif [[ "$CURRENT_OS" == "linux" ]]; then
+        if command -v apt &> /dev/null; then
+            pkg_manager="apt"
+        elif command -v pacman &> /dev/null; then
+            pkg_manager="pacman"
+        else
+            echo "Error: Neither apt nor pacman found. Cannot update software." >&2
+            return 1
+        fi
+
+        echo "Updating package manager ($pkg_manager) and upgrading packages..."
+        echo "This may require sudo privileges."
+        if [[ "$pkg_manager" == "apt" ]]; then
+            if ! $DRY_RUN; then
+                 sudo apt update && sudo apt upgrade -y
+            else
+                 echo "DRY RUN: Would run 'sudo apt update && sudo apt upgrade -y'"
+            fi
+        elif [[ "$pkg_manager" == "pacman" ]]; then
+             if ! $DRY_RUN; then
+                  sudo pacman -Syu --noconfirm
+             else
+                  echo "DRY RUN: Would run 'sudo pacman -Syu --noconfirm'"
+             fi
+        fi
+    else
+        echo "Software update not supported on OS: $CURRENT_OS"
+        return 1 # Indicate unsupported OS
+    fi
+    echo "Software update process finished."
 }
 
 # --- Argument Parsing ---
@@ -299,11 +377,12 @@ SOURCE_PATH=""
 REPO_PATH=""
 
 # Use getopts for better argument handling
-while getopts ":t:s:r:" opt; do
+while getopts ":t:s:r:n" opt; do
   case $opt in
     t) TASK="$OPTARG" ;;
     s) SOURCE_PATH="$OPTARG" ;;
     r) REPO_PATH="$OPTARG" ;;
+    n) DRY_RUN=true ;; # Set Dry Run flag
     \?) echo "Invalid option: -$OPTARG" >&2; exit 1 ;;
     :) echo "Option -$OPTARG requires an argument." >&2; exit 1 ;;
   esac
@@ -312,11 +391,12 @@ done
 shift $((OPTIND -1))
 
 # Validate Task
-if [[ "$TASK" != "all" && "$TASK" != "dotfiles" && "$TASK" != "software" && "$TASK" != "fonts" && "$TASK" != "add" ]]; then
-    echo "Error: Invalid task specified: '$TASK'."
-    echo "Usage: $0 [-t <task>] [-s <source_path> -r <repo_path>]"
-    echo "Available tasks: dotfiles, software, fonts, add, all (default)"
+if [[ "$TASK" != "all" && "$TASK" != "dotfiles" && "$TASK" != "software" && "$TASK" != "fonts" && "$TASK" != "add" && "$TASK" != "update" ]]; then
+    echo "Error: Invalid task specified: '$TASK'." >&2
+    echo "Usage: $0 [-t <task>] [-n] [-s <source_path> -r <repo_path>]"
+    echo "Available tasks: dotfiles, software, fonts, add, update, all (default)"
     echo "Options for 'add' task: -s /path/to/your/file -r relative/repo/path"
+    echo "Option -n enables Dry Run mode."
     exit 1
 fi
 
@@ -332,6 +412,10 @@ echo "Starting installation for OS: $CURRENT_OS with task: $TASK ..."
 if [[ "$CURRENT_OS" == "unknown" ]]; then
     echo "Exiting due to unsupported OS."
     exit 1
+fi
+
+if $DRY_RUN; then
+    echo "*** DRY RUN MODE ENABLED ***" >&2 # Output to stderr to avoid mixing with potential command output
 fi
 
 error_occurred=false
@@ -352,6 +436,10 @@ if [[ "$TASK" == "add" ]]; then
     add_dotfile "$SOURCE_PATH" "$REPO_PATH" || error_occurred=true
 fi
 
+if [[ "$TASK" == "update" ]]; then # Added update task execution
+    update_software || error_occurred=true
+fi
+
 echo "--- Installation finished ---"
 if $error_occurred; then
     echo "One or more tasks encountered errors."
@@ -359,6 +447,4 @@ if $error_occurred; then
 else
     echo "All requested tasks completed successfully."
     exit 0
-fi
-
-# Removed the old monolithic logic from here down 
+fi 

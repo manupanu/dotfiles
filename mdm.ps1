@@ -5,22 +5,27 @@
 .SYNOPSIS
 Installs dotfiles, software, or fonts based on specified task. Will attempt to relaunch with Admin rights if needed for software task.
 .PARAMETER Task
-Specifies the task to perform. Valid values are 'dotfiles', 'software', 'fonts', 'all', 'add'. Defaults to 'all'.
+Specifies the task to perform. Valid values are 'dotfiles', 'software', 'fonts', 'all', 'add', 'update'. Defaults to 'all'.
 .PARAMETER SourcePath
 Required for 'add' task: Path to the existing file/dir on the system
 .PARAMETER RepoPath
 Required for 'add' task: Relative path within the repo (e.g., modules/common/mytool)
+.PARAMETER DryRun
+If specified, the script will print actions it would take without actually executing them.
 #>
 param (
     [Parameter(Mandatory=$false, Position=0)]
-    [ValidateSet('all', 'dotfiles', 'software', 'fonts', 'add')]
+    [ValidateSet('all', 'dotfiles', 'software', 'fonts', 'add', 'update')]
     [string]$Task = 'all',
 
     [Parameter(Mandatory=$false)]
     [string]$SourcePath, # Required for 'add' task: Path to the existing file/dir on the system
 
     [Parameter(Mandatory=$false)]
-    [string]$RepoPath # Required for 'add' task: Relative path within the repo (e.g., modules/common/mytool)
+    [string]$RepoPath, # Required for 'add' task: Relative path within the repo (e.g., modules/common/mytool)
+
+    [Parameter(Mandatory=$false)]
+    [switch]$DryRun # Added DryRun switch
 )
 
 # --- OS Detection ---
@@ -154,21 +159,29 @@ function Install-Dotfiles {
         # Create target directory if it doesn't exist
         if ($targetDir -and (-not (Test-Path -Path $targetDir -PathType Container))) {
             Write-Host "Creating directory: $targetDir"
-            try {
-                New-Item -Path $targetDir -ItemType Directory -Force -ErrorAction Stop | Out-Null
-            } catch {
-                Write-Error "Failed to create directory $targetDir. Skipping. Error: $($_.Exception.Message)"
-                return
+            if (-not $DryRun) {
+                try {
+                    New-Item -Path $targetDir -ItemType Directory -Force -ErrorAction Stop | Out-Null
+                } catch {
+                    Write-Error "Failed to create directory $targetDir. Skipping. Error: $($_.Exception.Message)"
+                    return
+                }
+            } else {
+                 Write-Host "DRY RUN: Would create directory $targetDir"
             }
         }
 
         # Copy the item (file or directory) (force overwrite)
         $copyAction = if (Test-Path -Path $absSourcePath -PathType Container) { "Copying directory" } else { "Copying file" }
         Write-Host "$copyAction $absSourcePath -> $expandedTargetPath"
-        try {
-            Copy-Item -Path $absSourcePath -Destination $expandedTargetPath -Force -Recurse -ErrorAction Stop
-        } catch {
-            Write-Error "Failed to copy to $expandedTargetPath. Check permissions. Error: $($_.Exception.Message)"
+        if (-not $DryRun) {
+            try {
+                Copy-Item -Path $absSourcePath -Destination $expandedTargetPath -Force -Recurse -ErrorAction Stop
+            } catch {
+                Write-Error "Failed to copy to $expandedTargetPath. Check permissions. Error: $($_.Exception.Message)"
+            }
+        } else {
+             Write-Host "DRY RUN: Would $copyAction from $absSourcePath to $expandedTargetPath"
         }
     }
     Write-Host "Dotfiles installation/linking complete."
@@ -198,17 +211,21 @@ function Install-Software {
         $packageId = $_.Trim()
         if (-not ([string]::IsNullOrWhiteSpace($packageId)) -and -not $packageId.StartsWith('#')) {
             Write-Host "Installing $packageId..."
-            try {
-                # Use Invoke-Expression to handle potential redirection or complex commands if needed in future
-                # For now, direct call is fine but using Start-Process allows waiting and better control.
-                $process = Start-Process -FilePath $wingetPath.Source -ArgumentList "install", "--id", "$packageId", "--accept-package-agreements", "--accept-source-agreements", "--disable-interactivity" -Wait -NoNewWindow -PassThru -ErrorAction Stop
-                if ($process.ExitCode -ne 0) {
-                    Write-Warning "Winget exited with code $($process.ExitCode) for package '$packageId'."
-                    # Consider stopping or continuing based on preference
+            if (-not $DryRun) {
+                try {
+                    # Use Invoke-Expression to handle potential redirection or complex commands if needed in future
+                    # For now, direct call is fine but using Start-Process allows waiting and better control.
+                    $process = Start-Process -FilePath $wingetPath.Source -ArgumentList "install", "--id", "$packageId", "--accept-package-agreements", "--accept-source-agreements", "--disable-interactivity" -Wait -NoNewWindow -PassThru -ErrorAction Stop
+                    if ($process.ExitCode -ne 0) {
+                        Write-Warning "Winget exited with code $($process.ExitCode) for package '$packageId'."
+                        # Consider stopping or continuing based on preference
+                    }
+                } catch {
+                    Write-Error "Failed to install package '$packageId'. Error: $($_.Exception.Message)"
+                    # Consider stopping or continuing
                 }
-            } catch {
-                Write-Error "Failed to install package '$packageId'. Error: $($_.Exception.Message)"
-                # Consider stopping or continuing
+            } else {
+                 Write-Host "DRY RUN: Would install winget package '$packageId'"
             }
         }
     }
@@ -232,11 +249,15 @@ function Install-Fonts {
     $fontTargetDir = Join-Path -Path $env:LOCALAPPDATA -ChildPath "Microsoft\Windows\Fonts"
 
     Write-Host "Ensuring font directory exists: $fontTargetDir"
-    try {
-        New-Item -Path $fontTargetDir -ItemType Directory -Force -ErrorAction Stop | Out-Null
-    } catch {
-        Write-Error "Failed to create font directory $fontTargetDir. Error: $($_.Exception.Message)"
-        return
+    if (-not $DryRun) {
+        try {
+            New-Item -Path $fontTargetDir -ItemType Directory -Force -ErrorAction Stop | Out-Null
+        } catch {
+            Write-Error "Failed to create font directory $fontTargetDir. Error: $($_.Exception.Message)"
+            return
+        }
+    } else {
+        Write-Host "DRY RUN: Would ensure font directory exists: $fontTargetDir"
     }
 
     Write-Host "Copying fonts from $fontSourceDir to $fontTargetDir..."
@@ -254,12 +275,16 @@ function Install-Fonts {
              continue
         }
         Write-Host "Copying $($fontFile.Name)..."
-        try {
-            Copy-Item -Path $fontFile.FullName -Destination $targetFontPath -Force -ErrorAction Stop
-            # Note: For system-wide registration, more complex steps involving Shell.Application or registry are needed.
-            # This copy to user profile folder works for many apps but might require logoff/logon.
-        } catch {
-             Write-Warning "Failed to copy font '$($fontFile.Name)'. Error: $($_.Exception.Message)"
+        if (-not $DryRun) {
+            try {
+                Copy-Item -Path $fontFile.FullName -Destination $targetFontPath -Force -ErrorAction Stop
+                # Note: For system-wide registration, more complex steps involving Shell.Application or registry are needed.
+                # This copy to user profile folder works for many apps but might require logoff/logon.
+            } catch {
+                 Write-Warning "Failed to copy font '$($fontFile.Name)'. Error: $($_.Exception.Message)"
+            }
+        } else {
+             Write-Host "DRY RUN: Would copy font '$($fontFile.Name)' to $targetFontPath"
         }
     }
 
@@ -290,22 +315,30 @@ function Add-Dotfile {
     # Create parent directories in repo if they don't exist
     if ($repoDestDir -and (-not (Test-Path -Path $repoDestDir -PathType Container))) {
         Write-Host "Creating repository directory: $repoDestDir"
-        try {
-            New-Item -Path $repoDestDir -ItemType Directory -Force -ErrorAction Stop | Out-Null
-        } catch {
-            Write-Error "Failed to create repository directory $repoDestDir. Error: $($_.Exception.Message)"
-            return
+        if (-not $DryRun) {
+            try {
+                New-Item -Path $repoDestDir -ItemType Directory -Force -ErrorAction Stop | Out-Null
+            } catch {
+                Write-Error "Failed to create repository directory $repoDestDir. Error: $($_.Exception.Message)"
+                return
+            }
+        } else {
+             Write-Host "DRY RUN: Would create repository directory $repoDestDir"
         }
     }
 
     # Copy the source file/directory to the repo
     $copyAction = if (Test-Path -Path $SourcePath -PathType Container) { "Copying directory" } else { "Copying file" }
     Write-Host "$copyAction from '$SourcePath' to '$absRepoDestPath'"
-    try {
-        Copy-Item -Path $SourcePath -Destination $absRepoDestPath -Force -Recurse -ErrorAction Stop
-    } catch {
-        Write-Error "Failed to copy to repository path $absRepoDestPath. Error: $($_.Exception.Message)"
-        return
+    if (-not $DryRun) {
+        try {
+            Copy-Item -Path $SourcePath -Destination $absRepoDestPath -Force -Recurse -ErrorAction Stop
+        } catch {
+            Write-Error "Failed to copy to repository path $absRepoDestPath. Error: $($_.Exception.Message)"
+            return
+        }
+    } else {
+         Write-Host "DRY RUN: Would $copyAction from '$SourcePath' to '$absRepoDestPath'"
     }
 
     # Normalize the original source path for links.conf (replace $HOME with ~)
@@ -327,35 +360,86 @@ function Add-Dotfile {
     # Append the entry to links.conf
     $newLine = "${normalizedRepoPath}:${normalizedTargetPath} [all]" # Explicitly delimited variables
     Write-Host ("Adding entry to {0}: {1}" -f $ConfigFile, $newLine) # Using format operator
-    try {
-        # Add newline before adding content if file not empty and doesn't end with newline
-        if ((Get-Content $ConfigFile -Raw -ErrorAction SilentlyContinue).Length -gt 0 -and (Get-Content $ConfigFile -Tail 1) -ne '') {
-             Add-Content -Path $ConfigFile -Value ([System.Environment]::NewLine) -ErrorAction Stop
+    if (-not $DryRun) {
+        try {
+            # Add newline before adding content if file not empty and doesn't end with newline
+            if ((Get-Content $ConfigFile -Raw -ErrorAction SilentlyContinue).Length -gt 0 -and (Get-Content $ConfigFile -Tail 1) -ne '') {
+                 Add-Content -Path $ConfigFile -Value ([System.Environment]::NewLine) -ErrorAction Stop
+            }
+            Add-Content -Path $ConfigFile -Value $newLine -ErrorAction Stop
+        } catch {
+            Write-Error "Failed to update $ConfigFile. Error: $($_.Exception.Message)"
+            # Consider attempting to revert the file copy here? For now, just error out.
+            return
         }
-        Add-Content -Path $ConfigFile -Value $newLine -ErrorAction Stop
-    } catch {
-        Write-Error "Failed to update $ConfigFile. Error: $($_.Exception.Message)"
-        # Consider attempting to revert the file copy here? For now, just error out.
-        return
+    } else {
+         Write-Host "DRY RUN: Would add line '$newLine' to $ConfigFile"
     }
 
     Write-Host "Dotfile '$SourcePath' added successfully."
     Write-Host "You may want to manually edit '$ConfigFile' to adjust OS specificity (currently '[all]')."
 }
 
+function Update-Software {
+    Write-Host "--- Updating Software ---"
+    if ($CurrentOS -ne 'windows') {
+        Write-Host "Software update via this script is only supported on Windows."
+        return
+    }
+
+    $wingetPath = Get-Command winget -ErrorAction SilentlyContinue
+    if (-not $wingetPath) {
+        Write-Error "Winget command not found. Please install App Installer from the Microsoft Store."
+        return
+    }
+
+    # Note: Winget upgrade often requires Admin rights
+    if (-not (Test-IsAdmin)) {
+         Write-Warning "Winget upgrade usually requires Administrator privileges."
+         # Script should have already attempted elevation if task 'update' was chosen,
+         # but we warn here if somehow it's still not elevated.
+    }
+
+    Write-Host "Checking for updates using winget..."
+    if (-not $DryRun) {
+        try {
+            # Consider filtering updates based on software.list? Could be complex.
+            # For now, update all managed by winget.
+            $process = Start-Process -FilePath $wingetPath.Source -ArgumentList "upgrade", "--all", "--accept-package-agreements", "--accept-source-agreements", "--disable-interactivity" -Wait -NoNewWindow -PassThru -ErrorAction Stop
+            if ($process.ExitCode -ne 0) {
+                # Winget often returns non-zero codes even on success (e.g., no updates found), handle specific codes if needed.
+                 Write-Warning "Winget upgrade exited with code $($process.ExitCode)."
+            } else {
+                 Write-Host "Winget upgrade command completed."
+            }
+        } catch {
+            Write-Error "Failed to run winget upgrade. Error: $($_.Exception.Message)"
+        }
+    } else {
+         Write-Host "DRY RUN: Would run winget upgrade --all"
+    }
+     Write-Host "Software update check complete."
+}
+
 
 # --- Main Execution ---
-Write-Host "Starting installation for OS: $CurrentOS with task: $Task ..."
+Write-Host "Starting mdm for OS: $CurrentOS with task: $Task ..."
+if ($DryRun) { Write-Host "*** DRY RUN MODE ENABLED ***" -ForegroundColor Yellow }
+
 
 # Early exit if not on Windows, as primary tasks are Windows-specific
 if ($CurrentOS -ne "windows") {
-    Write-Warning "This script primarily targets Windows tasks (software, fonts). Skipping execution on $CurrentOS."
-    exit 0 # Exit gracefully on non-windows OS
+    # Allow 'dotfiles' task to run on non-windows, but exit for others
+    if ($Task -ne 'dotfiles') {
+        Write-Warning "Tasks other than 'dotfiles' primarily target Windows. Skipping execution on $CurrentOS."
+        exit 0 # Exit gracefully on non-windows OS
+    }
 }
 
-# Check for elevation only if software task is requested
-if (($Task -eq 'all' -or $Task -eq 'software') -and (-not (Test-IsAdmin))) {
-    Write-Warning "The 'software' task requires Administrator privileges for winget."
+# Check for elevation only if software or update task is requested
+# Adjusted condition to include 'update' task
+if (($Task -eq 'software' -or $Task -eq 'update' -or $Task -eq 'all') -and ($CurrentOS -eq 'windows') -and (-not (Test-IsAdmin))) {
+    Write-Warning "The '$Task' task requires Administrator privileges for winget on Windows."
     Write-Host "Attempting to relaunch script with elevation..."
 
     # Prepare arguments for relaunch
@@ -381,7 +465,7 @@ if (($Task -eq 'all' -or $Task -eq 'software') -and (-not (Test-IsAdmin))) {
     exit 0
 }
 
-# --- Proceed with tasks if already elevated or if software task wasn't requested ---
+# --- Proceed with tasks if already elevated or if specific tasks weren't requested ---
 
 # Check for unknown OS (should have been caught earlier, but as a safeguard)
 if ($CurrentOS -eq "unknown") {
@@ -409,23 +493,28 @@ if ($Task -eq 'add') {
     # Add task does not require elevation or specific OS checks here
      Invoke-Task -FunctionName 'Add-Dotfile'
 } elseif ($Task -eq 'all' -or $Task -eq 'dotfiles') {
+    # Dotfiles task might run on non-Windows if specified explicitly
     Invoke-Task -FunctionName 'Install-Dotfiles'
 }
 
-if ($Task -eq 'all' -or $Task -eq 'software') {
-     if ($CurrentOS -eq 'windows') {
-         Invoke-Task -FunctionName 'Install-Software'
-     } else {
-         Write-Host "Skipping software task: Not on Windows."
-     }
-}
+# Software install/update/fonts only on Windows from here
+if ($CurrentOS -eq 'windows') {
+    if ($Task -eq 'all' -or $Task -eq 'software') {
+        Invoke-Task -FunctionName 'Install-Software'
+    }
 
-if ($Task -eq 'all' -or $Task -eq 'fonts') {
-     if ($CurrentOS -eq 'windows') {
+    if ($Task -eq 'all' -or $Task -eq 'fonts') {
         Invoke-Task -FunctionName 'Install-Fonts'
-     } else {
-         Write-Host "Skipping fonts task: Not on Windows."
-     }
+    }
+
+    if ($Task -eq 'update') {
+        Invoke-Task -FunctionName 'Update-Software'
+    }
+} else {
+    # Inform user if tasks were skipped due to OS
+    if ($Task -in ('all', 'software', 'fonts', 'update')) {
+         Write-Host "Skipping tasks '$Task' as they are Windows-specific or require Windows components (winget)."
+    }
 }
 
 Write-Host "--- Installation finished ---"
