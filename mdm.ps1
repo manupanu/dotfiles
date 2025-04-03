@@ -3,21 +3,26 @@
 
 <#
 .SYNOPSIS
-Installs dotfiles, software, or fonts based on specified task. Will attempt to relaunch with Admin rights if needed for software task.
-.PARAMETER Task
-Specifies the task to perform. Valid values are 'dotfiles', 'software', 'fonts', 'all', 'add', 'update'. Defaults to 'all'.
+Manages dotfiles, software, and fonts. Installs by default, or performs specific actions like add/update via flags.
+Attempts to relaunch with Admin rights if needed for software install/update.
 .PARAMETER SourcePath
 Required for 'add' task: Path to the existing file/dir on the system
 .PARAMETER RepoPath
 Required for 'add' task: Relative path within the repo (e.g., modules/common/mytool)
 .PARAMETER DryRun
 If specified, the script will print actions it would take without actually executing them.
+.PARAMETER Add
+Adds a new dotfile. Requires -SourcePath and -RepoPath.
+.PARAMETER Update
+Updates installed software using the system package manager (Windows only for now).
+.PARAMETER Dotfiles
+Installs dotfiles only.
+.PARAMETER Software
+Installs software only.
+.PARAMETER Fonts
+Installs fonts only.
 #>
 param (
-    [Parameter(Mandatory=$false, Position=0)]
-    [ValidateSet('all', 'dotfiles', 'software', 'fonts', 'add', 'update')]
-    [string]$Task = 'all',
-
     [Parameter(Mandatory=$false)]
     [string]$SourcePath, # Required for 'add' task: Path to the existing file/dir on the system
 
@@ -25,7 +30,25 @@ param (
     [string]$RepoPath, # Required for 'add' task: Relative path within the repo (e.g., modules/common/mytool)
 
     [Parameter(Mandatory=$false)]
-    [switch]$DryRun # Added DryRun switch
+    [switch]$DryRun,
+
+    # Action Flags (Mutually Exclusive with each other and Installation Flags)
+    [Parameter(Mandatory=$false)]
+    [switch]$Add,
+
+    [Parameter(Mandatory=$false)]
+    [switch]$Update,
+
+    # Installation Flags (Mutually Exclusive with Action Flags)
+    # If none of these are specified, and no Action flag, run all installations.
+    [Parameter(Mandatory=$false)]
+    [switch]$Dotfiles,
+
+    [Parameter(Mandatory=$false)]
+    [switch]$Software,
+
+    [Parameter(Mandatory=$false)]
+    [switch]$Fonts
 )
 
 # --- OS Detection ---
@@ -423,36 +446,88 @@ function Update-Software {
 
 
 # --- Main Execution ---
-Write-Host "Starting mdm for OS: $CurrentOS with task: $Task ..."
+Write-Host "Starting mdm for OS: $CurrentOS ..."
 if ($DryRun) { Write-Host "*** DRY RUN MODE ENABLED ***" -ForegroundColor Yellow }
+
+
+# --- Parameter Validation ---
+$actionFlags = @($Add, $Update).Where({$PSItem -eq $true}).Count
+$installFlags = @($Dotfiles, $Software, $Fonts).Where({$PSItem -eq $true}).Count
+
+if ($actionFlags -gt 1) {
+    Write-Error "Action flags (-Add, -Update) are mutually exclusive."
+    exit 1
+}
+
+if ($actionFlags -gt 0 -and $installFlags -gt 0) {
+    Write-Error "Action flags (-Add, -Update) cannot be combined with Installation flags (-Dotfiles, -Software, -Fonts)."
+    exit 1
+}
+
+if ($Add) {
+    if (-not $SourcePath -or -not $RepoPath) {
+        Write-Error "-Add flag requires both -SourcePath and -RepoPath parameters."
+        exit 1
+    }
+} elseif ($SourcePath -or $RepoPath) {
+    Write-Error "-SourcePath and -RepoPath parameters can only be used with the -Add flag."
+    exit 1
+}
+# --- End Parameter Validation ---
 
 
 # Early exit if not on Windows, as primary tasks are Windows-specific
 if ($CurrentOS -ne "windows") {
-    # Allow 'dotfiles' task to run on non-windows, but exit for others
-    if ($Task -ne 'dotfiles') {
-        Write-Warning "Tasks other than 'dotfiles' primarily target Windows. Skipping execution on $CurrentOS."
+    # Only allow dotfiles operations (-Add or install involving dotfiles) on non-Windows
+    $isInstallAction = ($actionFlags -eq 0)
+    $installIncludesDotfiles = ($Dotfiles -or $installFlags -eq 0) # True if -Dotfiles flag used or if default install (no flags)
+    $allowNonWindows = $Add -or ($isInstallAction -and $installIncludesDotfiles)
+    if (-not $allowNonWindows) {
+        Write-Warning "Tasks other than dotfile management primarily target Windows. Skipping execution on $CurrentOS."
         exit 0 # Exit gracefully on non-windows OS
     }
 }
 
-# Check for elevation only if software or update task is requested
-# Adjusted condition to include 'update' task
-if (($Task -eq 'software' -or $Task -eq 'update' -or $Task -eq 'all') -and ($CurrentOS -eq 'windows') -and (-not (Test-IsAdmin))) {
-    Write-Warning "The '$Task' task requires Administrator privileges for winget on Windows."
+# Check for elevation if required actions are requested on Windows
+$requiresElevation = $false
+if ($CurrentOS -eq 'windows') {
+    if ($Update) { $requiresElevation = $true }
+    # If default install or filtered install includes Software
+    if ($actionFlags -eq 0 -and ($Software -or $installFlags -eq 0)) {
+         $requiresElevation = $true
+     }
+}
+
+if ($requiresElevation -and (-not (Test-IsAdmin))) {
+    $triggerTask = if ($Update) { "Update" } else { "Software installation" }
+    Write-Warning "The $triggerTask requires Administrator privileges for winget on Windows."
     Write-Host "Attempting to relaunch script with elevation..."
 
     # Prepare arguments for relaunch
     # Ensure the script path is quoted properly, especially if it contains spaces
     $scriptPath = "`"$($PSCommandPath)`""
-    $powershellArgs = "-NoProfile -ExecutionPolicy Bypass -File $scriptPath"
 
-    # Pass existing parameters to the new instance
-    if ($PSBoundParameters.ContainsKey('Task')) {
-        $powershellArgs += " -Task $($PSBoundParameters['Task'])"
-    }
-    # Add other parameters here if needed in the future
-    # e.g., if ($PSBoundParameters.ContainsKey('SomeOtherParam')) { $powershellArgs += " -SomeOtherParam $($PSBoundParameters['SomeOtherParam'])" }
+    # Corrected argument reconstruction
+    # Get parameters except -Task (which shouldn't exist anyway, but safe check)
+    $paramsToPass = $PSBoundParameters.Where({$_.Key -ne 'Task'})
+
+    # Build the argument list string array
+    $argListStrings = $paramsToPass.ForEach({ 
+        $paramName = "-$($_.Key)"
+        if ($_.Value -is [switch]) {
+            # For switches, just include the name
+            $paramName 
+        } else {
+            # For parameters with values, include the name and quoted value
+            $paramName + ' "' + $_.Value + '"' 
+        }
+    })
+
+    # Join the arguments with spaces
+    $joinedArgs = $argListStrings -join ' '
+
+    # Construct the final command line arguments
+    $powershellArgs = "-NoProfile -ExecutionPolicy Bypass -File $scriptPath $joinedArgs"
 
     try {
         # Start PowerShell elevated, passing the reconstructed arguments
@@ -463,14 +538,6 @@ if (($Task -eq 'software' -or $Task -eq 'update' -or $Task -eq 'all') -and ($Cur
     }
     # Exit the current non-elevated instance successfully (as the elevated one should take over)
     exit 0
-}
-
-# --- Proceed with tasks if already elevated or if specific tasks weren't requested ---
-
-# Check for unknown OS (should have been caught earlier, but as a safeguard)
-if ($CurrentOS -eq "unknown") {
-    Write-Error "Exiting due to unsupported OS."
-    exit 1 # Use non-zero exit code for errors
 }
 
 # Track if any task fails
@@ -489,31 +556,52 @@ function Invoke-Task {
     }
 }
 
-if ($Task -eq 'add') {
+if ($Add) {
     # Add task does not require elevation or specific OS checks here
-     Invoke-Task -FunctionName 'Add-Dotfile'
-} elseif ($Task -eq 'all' -or $Task -eq 'dotfiles') {
-    # Dotfiles task might run on non-Windows if specified explicitly
-    Invoke-Task -FunctionName 'Install-Dotfiles'
-}
-
-# Software install/update/fonts only on Windows from here
-if ($CurrentOS -eq 'windows') {
-    if ($Task -eq 'all' -or $Task -eq 'software') {
-        Invoke-Task -FunctionName 'Install-Software'
-    }
-
-    if ($Task -eq 'all' -or $Task -eq 'fonts') {
-        Invoke-Task -FunctionName 'Install-Fonts'
-    }
-
-    if ($Task -eq 'update') {
+    Invoke-Task -FunctionName 'Add-Dotfile'
+} elseif ($Update) {
+    if ($CurrentOS -eq 'windows') {
         Invoke-Task -FunctionName 'Update-Software'
+    } else {
+        Write-Warning "Software update is currently only supported on Windows."
+        # Consider this an error? For now, just warn and skip.
+        # $global:ScriptErrorOccurred = $true
     }
 } else {
-    # Inform user if tasks were skipped due to OS
-    if ($Task -in ('all', 'software', 'fonts', 'update')) {
-         Write-Host "Skipping tasks '$Task' as they are Windows-specific or require Windows components (winget)."
+    # Default Installation (all or filtered)
+    Write-Host "--- Running Default Installation Tasks ---"
+    # Determine which parts to run
+    $runAll = ($installFlags -eq 0) # Run all if no specific install flags are set
+    $runDotfiles = $Dotfiles -or $runAll
+    $runSoftware = ($Software -or $runAll) -and ($CurrentOS -eq 'windows')
+    $runFonts = ($Fonts -or $runAll) -and ($CurrentOS -eq 'windows')
+
+    if ($runDotfiles) {
+        Invoke-Task -FunctionName 'Install-Dotfiles'
+    } else {
+        Write-Host "Skipping dotfiles task based on flags."
+    }
+
+    if ($runSoftware) {
+        Invoke-Task -FunctionName 'Install-Software'
+    } else {
+        # Explain skip reason only if it *would* have run but for the OS
+        if (($Software -or $runAll) -and $CurrentOS -ne 'windows') {
+             Write-Host "Skipping software task: Not on Windows."
+         } else {
+              Write-Host "Skipping software task based on flags."
+         }
+    }
+
+    if ($runFonts) {
+        Invoke-Task -FunctionName 'Install-Fonts'
+    } else {
+        # Explain skip reason only if it *would* have run but for the OS
+        if (($Fonts -or $runAll) -and $CurrentOS -ne 'windows') {
+             Write-Host "Skipping fonts task: Not on Windows."
+         } else {
+              Write-Host "Skipping fonts task based on flags."
+         }
     }
 }
 

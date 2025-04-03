@@ -1,16 +1,20 @@
 # Manuel's Dotfile Manager (mdm)
 
-This repository helps manage configuration files (dotfiles), install software packages, and deploy fonts across different operating systems (Windows, Linux, macOS) using native shell scripts. It also provides a command to easily add existing dotfiles to the manager.
+This repository helps manage configuration files (dotfiles), install software packages, and deploy fonts across different operating systems (Windows, Linux, macOS) using native shell scripts.
+
+By default, it installs all components (dotfiles, software, fonts). Specific flags can be used to perform actions like adding a dotfile (`--add`), updating software (`--update`), or installing only specific components (`--dotfiles`, `--software`, `--fonts`).
 
 ## Features
 
 - **Dotfile Management:** Symlinks (Linux/macOS) or copies (Windows) configuration files based on `links.conf`.
-- **Add Dotfiles:** Copies existing files/directories into the repository and automatically updates `links.conf`.
+- **Add Dotfiles:** Copies existing files/directories into the repository and automatically updates `links.conf` (using `--add`).
 - **Software Installation:** Installs packages using native package managers (Winget, Homebrew, APT, Pacman) from predefined lists.
-- **Software Update:** Updates installed packages using the system's package manager.
+- **Software Update:** Updates installed packages using the native package manager (using `--update`).
 - **Font Installation:** Copies fonts from a common directory to the user's font location.
-- **Task Selection:** Allows running specific tasks (`dotfiles`, `software`, `update`, `fonts`, `add`) or `all` install/link tasks.
-- **Dry Run Mode:** Allows previewing changes without modifying the system using the `-DryRun` (PowerShell) or `-n` (Bash) flag.
+- **Flexible Execution:** Run all installations by default, or use flags to target specific actions or installation components.
+- **Dry Run Mode:** Preview changes without modifying the system using `-DryRun` (PowerShell) or `-n`/`--dry-run` (Bash).
+- **Platform Aware:** Adapts behavior for Windows, macOS, and Linux (Debian/Arch based).
+- **Automatic Elevation:** Attempts to relaunch with admin/sudo rights on Windows when needed (e.g., for software install/update).
 
 ## Configuration
 
@@ -66,113 +70,82 @@ Place font files (`.ttf`, `.otf`, etc.) inside the `modules/common/fonts/` direc
 
 ## Usage
 
-Run the appropriate script (`mdm.sh` for Linux/macOS, `mdm.ps1` for Windows) from the root of the repository.
+Run the appropriate script (`mdm.sh` for Linux/macOS, `mdm.ps1` for Windows) from the root of the repository using flags to specify the desired operation.
 
-**Remember to rename `install.sh` to `mdm.sh` and `install.ps1` to `mdm.ps1` if you haven't already.**
+**Core Principles:**
 
-### Installation & Linking Tasks
+*   **No Flags = Install All:** Running the script without any flags performs the default installation sequence: dotfiles, software (if applicable), and fonts (if applicable).
+*   **Action Flags (`--add`, `--update`):** Perform a specific action instead of installation. These are mutually exclusive with each other and with Installation Flags.
+*   **Installation Flags (`--dotfiles`, `--software`, `--fonts`):** Install *only* the specified components. These are mutually exclusive with Action Flags. Can be combined (e.g., `--dotfiles --fonts`).
+*   **Dry Run (`-n`/`--dry-run`, `-DryRun`):** Can be added to any command to preview actions without execution.
 
-These tasks install software, fonts, or link/copy dotfiles specified in `links.conf`.
+### Examples (Bash - Linux/macOS)
 
--   **Linux / macOS (Bash):**
-    ```bash
-    # Run all install/link tasks (dotfiles, software, fonts)
-    ./mdm.sh
+```bash
+# Install all (dotfiles, software, fonts) - Default Behavior
+./mdm.sh
 
-    # Run only specific task (dotfiles, software, fonts)
-    ./mdm.sh -t software
-    ./mdm.sh -t dotfiles
+# Install only dotfiles
+./mdm.sh --dotfiles
 
-    # Preview changes without executing (Dry Run)
-    ./mdm.sh -n
-    ./mdm.sh -t software -n
-    ```
-    *Note: `sudo` access may be required for installing/updating software (`apt`/`pacman`).*
+# Install only software (requires sudo on Linux)
+./mdm.sh --software
 
--   **Windows (PowerShell):**
-    ```powershell
-    # You might need to set the execution policy first
-    # Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+# Install only dotfiles and fonts
+./mdm.sh --dotfiles --fonts
 
-    # Run all install/link tasks (dotfiles, software, fonts)
-    .\mdm.ps1
+# Add a new dotfile
+./mdm.sh --add -s ~/.config/nvim -r modules/common/nvim
 
-    # Run only specific task (dotfiles, software, fonts)
-    .\mdm.ps1 -Task software
-    .\mdm.ps1 -Task dotfiles
+# Update installed software (requires sudo on Linux)
+./mdm.sh --update
 
-    # Preview changes without executing (Dry Run)
-    .\mdm.ps1 -DryRun
-    .\mdm.ps1 -Task software -DryRun
-    ```
-    *Note: Running as Administrator might be necessary for the `software` or `update` tasks (winget). The script will attempt to relaunch with elevation if needed.*
+# Dry Run: Preview installing all
+./mdm.sh -n
 
-### Adding a New Dotfile
+# Dry Run: Preview adding a dotfile
+./mdm.sh --add -s ~/.bashrc -r modules/common/bash/.bashrc -n
 
-Use the `add` task to copy an existing file or directory from your system into the repository and automatically update `links.conf`.
+# Dry Run: Preview updating software
+./mdm.sh --update -n
 
--   **Linux / macOS (Bash):**
-    ```bash
-    ./mdm.sh -t add -s <path_on_system> -r <relative_path_in_repo>
+# Show help
+./mdm.sh --help
+```
 
-    # Example: Add neovim config
-    ./mdm.sh -t add -s ~/.config/nvim -r modules/common/nvim
+### Examples (PowerShell - Windows)
 
-    # Example: Add bashrc
-    ./mdm.sh -t add -s ~/.bashrc -r modules/common/bash/.bashrc
-    ```
+```powershell
+# Set execution policy if needed (run once)
+# Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
 
--   **Windows (PowerShell):**
-    ```powershell
-    .\mdm.ps1 -Task add -SourcePath <path_on_system> -RepoPath <relative_path_in_repo>
+# Install all (dotfiles, software, fonts) - Default Behavior
+# (May require Admin rights for software - script will attempt to elevate)
+.\mdm.ps1
 
-    # Example: Add Starship config
-    .\mdm.ps1 -Task add -SourcePath C:\Users\YourUser\.config\starship.toml -RepoPath modules/common/starship.toml
-    # Or using ~ equivalent:
-    .\mdm.ps1 -Task add -SourcePath ~\.config\starship.toml -RepoPath modules/common/starship.toml
+# Install only dotfiles
+.\mdm.ps1 -Dotfiles
 
-    # Example: Add PowerShell profile
-    .\mdm.ps1 -Task add -SourcePath ~\Documents\PowerShell\Microsoft.PowerShell_profile.ps1 -RepoPath modules/windows/powershell/Microsoft.PowerShell_profile.ps1
-    ```
+# Install only software (Requires Admin - script will attempt to elevate)
+.\mdm.ps1 -Software
 
-**Arguments for `add` task:**
+# Install only dotfiles and fonts
+.\mdm.ps1 -Dotfiles -Fonts
 
--   `-s` / `-SourcePath`: The full path to the existing file or directory on your system that you want to manage. Use `~` for your home directory if desired.
--   `-r` / `-RepoPath`: The relative path within *this* repository where the file/directory should be stored (e.g., `modules/common/toolname`, `modules/windows/config.txt`). Do not use leading slashes or absolute paths here.
+# Add a new dotfile
+.\mdm.ps1 -Add -SourcePath ~\.config\starship.toml -RepoPath modules/common/starship.toml
 
-The `add` task will:
-1.  Copy the item from `<path_on_system>` to `<repo_root>/<relative_path_in_repo>`.
-2.  Append a line to `links.conf` like: `<relative_path_in_repo>:<path_on_system> [all]`. It automatically converts the system path to use `~` if it's within your home directory.
-3.  You may need to manually edit `links.conf` afterwards if you want to restrict the dotfile to specific operating systems (e.g., change `[all]` to `[linux,macos]`).
+# Update installed software (Requires Admin - script will attempt to elevate)
+.\mdm.ps1 -Update
 
-### Updating Software
+# Dry Run: Preview installing all
+.\mdm.ps1 -DryRun
 
-Use the `update` task to update installed packages using the system's package manager.
+# Dry Run: Preview adding a dotfile
+.\mdm.ps1 -Add -SourcePath ~\.config\git\config -RepoPath modules/common/git/config -DryRun
 
--   **Linux / macOS (Bash):**
-    ```bash
-    # Update packages (requires sudo for Linux)
-    ./mdm.sh -t update
+# Dry Run: Preview updating software
+.\mdm.ps1 -Update -DryRun
+```
 
-    # Preview packages that would be updated (Dry Run)
-    ./mdm.sh -t update -n
-    ```
-
--   **Windows (PowerShell):**
-    ```powershell
-    # Update packages (requires Admin rights)
-    .\mdm.ps1 -Task update
-
-    # Preview packages that would be updated (Dry Run)
-    .\mdm.ps1 -Task update -DryRun
-    ```
-
-**Arguments for `add` task:**
-
--   `-s` / `-SourcePath`: The full path to the existing file or directory on your system that you want to manage. Use `~` for your home directory if desired.
--   `-r` / `-RepoPath`: The relative path within *this* repository where the file/directory should be stored (e.g., `modules/common/toolname`, `modules/windows/config.txt`). Do not use leading slashes or absolute paths here.
-
-The `add` task will:
-1.  Copy the item from `<path_on_system>` to `<repo_root>/<relative_path_in_repo>`.
-2.  Append a line to `links.conf` like: `<relative_path_in_repo>:<path_on_system> [all]`. It automatically converts the system path to use `~` if it's within your home directory.
-3.  You may need to manually edit `links.conf` afterwards if you want to restrict the dotfile to specific operating systems (e.g., change `[all]` to `[linux,macos]`).
+*Note on Elevation:* On Windows, tasks requiring Administrator privileges (typically `-Software`, `-Update`, or default install) will cause the script to attempt to relaunch itself with elevated rights. On Linux, you'll need to run the script with `sudo` if needed (e.g., `sudo ./mdm.sh --software`).

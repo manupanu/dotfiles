@@ -17,6 +17,15 @@ CONFIG_FILE="$REPO_ROOT/links.conf"
 # Global flag for Dry Run mode
 DRY_RUN=false
 
+# Action / Filter Flags (set during parsing)
+DO_ADD=false
+DO_UPDATE=false
+DO_DOTFILES=false
+DO_SOFTWARE=false
+DO_FONTS=false
+SOURCE_PATH=""
+REPO_PATH=""
+
 # --- Function Definitions ---
 
 manage_dotfiles() {
@@ -371,46 +380,101 @@ update_software() {
     echo "Software update process finished."
 }
 
-# --- Argument Parsing ---
-TASK="all" # Default task
-SOURCE_PATH=""
-REPO_PATH=""
-
-# Use getopts for better argument handling
-while getopts ":t:s:r:n" opt; do
-  case $opt in
-    t) TASK="$OPTARG" ;;
-    s) SOURCE_PATH="$OPTARG" ;;
-    r) REPO_PATH="$OPTARG" ;;
-    n) DRY_RUN=true ;; # Set Dry Run flag
-    \?) echo "Invalid option: -$OPTARG" >&2; exit 1 ;;
-    :) echo "Option -$OPTARG requires an argument." >&2; exit 1 ;;
-  esac
+# Manual argument parsing loop
+while [[ $# -gt 0 ]]; do
+    key="$1"
+    case $key in
+        -s|--source)
+        SOURCE_PATH="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        -r|--repo)
+        REPO_PATH="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --add)
+        DO_ADD=true
+        shift # past argument
+        ;;
+        --update)
+        DO_UPDATE=true
+        shift # past argument
+        ;;
+        --dotfiles)
+        DO_DOTFILES=true
+        shift # past argument
+        ;;
+        --software)
+        DO_SOFTWARE=true
+        shift # past argument
+        ;;
+        --fonts)
+        DO_FONTS=true
+        shift # past argument
+        ;;
+        -n|--dry-run)
+        DRY_RUN=true
+        shift # past argument
+        ;;
+        -h|--help)
+        echo "Usage: $0 [--add -s <source> -r <repo>] [--update] [--dotfiles] [--software] [--fonts] [-n|--dry-run] [-h|--help]"
+        echo "  Default (no flags): Installs dotfiles, software, and fonts."
+        echo "  Action Flags (mutually exclusive with each other and installation flags):"
+        echo "    --add        Add a new dotfile (requires -s and -r)."
+        echo "    --update     Update installed software."
+        echo "  Installation Flags (run only specified parts; mutually exclusive with action flags):"
+        echo "    --dotfiles   Install dotfiles only."
+        echo "    --software   Install software only."
+        echo "    --fonts      Install fonts only."
+        echo "  Other Flags:"
+        echo "    -n, --dry-run  Preview actions without executing."
+        echo "    -h, --help     Show this help message."
+        exit 0
+        ;;
+        *)
+        echo "Error: Unknown option: $1" >&2
+        exit 1
+        ;;
+    esac
 done
 
-shift $((OPTIND -1))
+# --- Parameter Validation ---
+action_flags=0
+install_flags=0
+[[ "$DO_ADD" == true ]] && ((action_flags++))
+[[ "$DO_UPDATE" == true ]] && ((action_flags++))
+[[ "$DO_DOTFILES" == true ]] && ((install_flags++))
+[[ "$DO_SOFTWARE" == true ]] && ((install_flags++))
+[[ "$DO_FONTS" == true ]] && ((install_flags++))
 
-# Validate Task
-if [[ "$TASK" != "all" && "$TASK" != "dotfiles" && "$TASK" != "software" && "$TASK" != "fonts" && "$TASK" != "add" && "$TASK" != "update" ]]; then
-    echo "Error: Invalid task specified: '$TASK'." >&2
-    echo "Usage: $0 [-t <task>] [-n] [-s <source_path> -r <repo_path>]"
-    echo "Available tasks: dotfiles, software, fonts, add, update, all (default)"
-    echo "Options for 'add' task: -s /path/to/your/file -r relative/repo/path"
-    echo "Option -n enables Dry Run mode."
+if [[ $action_flags -gt 1 ]]; then
+    echo "Error: Action flags (--add, --update) are mutually exclusive." >&2
     exit 1
 fi
 
-# Validate arguments for 'add' task
-if [[ "$TASK" == "add" ]] && ( [ -z "$SOURCE_PATH" ] || [ -z "$REPO_PATH" ] ); then
-     echo "Error: For task 'add', both -s <source_path> and -r <repo_path> must be provided." >&2
-     exit 1
+if [[ $action_flags -gt 0 && $install_flags -gt 0 ]]; then
+    echo "Error: Action flags (--add, --update) cannot be combined with Installation flags (--dotfiles, --software, --fonts)." >&2
+    exit 1
 fi
 
+if [[ "$DO_ADD" == true ]]; then
+    if [[ -z "$SOURCE_PATH" || -z "$REPO_PATH" ]]; then
+        echo "Error: --add flag requires both -s/--source and -r/--repo arguments." >&2
+        exit 1
+    fi
+elif [[ -n "$SOURCE_PATH" || -n "$REPO_PATH" ]]; then
+    echo "Error: -s/--source and -r/--repo arguments can only be used with the --add flag." >&2
+    exit 1
+fi
+# --- End Parameter Validation ---
+
 # --- Main Execution ---
-echo "Starting installation for OS: $CURRENT_OS with task: $TASK ..."
+echo "Starting mdm for OS: $CURRENT_OS ..."
 
 if [[ "$CURRENT_OS" == "unknown" ]]; then
-    echo "Exiting due to unsupported OS."
+    echo "Exiting due to unsupported OS." >&2
     exit 1
 fi
 
@@ -420,27 +484,46 @@ fi
 
 error_occurred=false
 
-if [[ "$TASK" == "all" || "$TASK" == "dotfiles" ]]; then
-    manage_dotfiles || error_occurred=true
-fi
-
-if [[ "$TASK" == "all" || "$TASK" == "software" ]]; then
-    install_software || error_occurred=true
-fi
-
-if [[ "$TASK" == "all" || "$TASK" == "fonts" ]]; then
-    install_fonts || error_occurred=true
-fi
-
-if [[ "$TASK" == "add" ]]; then
+if [[ "$DO_ADD" == true ]]; then
     add_dotfile "$SOURCE_PATH" "$REPO_PATH" || error_occurred=true
-fi
-
-if [[ "$TASK" == "update" ]]; then # Added update task execution
+elif [[ "$DO_UPDATE" == true ]]; then
     update_software || error_occurred=true
+else 
+    # Default Installation (all or filtered)
+    echo "--- Running Default Installation Tasks ---" >&2
+    run_all=false
+    if [[ $install_flags -eq 0 ]]; then
+        run_all=true
+    fi
+
+    run_dotfiles=false
+    run_software=false
+    run_fonts=false
+
+    [[ "$DO_DOTFILES" == true || "$run_all" == true ]] && run_dotfiles=true
+    [[ "$DO_SOFTWARE" == true || "$run_all" == true ]] && run_software=true
+    [[ "$DO_FONTS" == true || "$run_all" == true ]] && run_fonts=true
+
+    if $run_dotfiles; then
+        manage_dotfiles || error_occurred=true
+    else
+        echo "Skipping dotfiles task based on flags." >&2
+    fi
+
+    if $run_software; then
+        install_software || error_occurred=true
+    else
+        echo "Skipping software task based on flags." >&2
+    fi
+
+    if $run_fonts; then
+        install_fonts || error_occurred=true
+    else
+        echo "Skipping fonts task based on flags." >&2
+    fi
 fi
 
-echo "--- Installation finished ---"
+echo "--- Installation finished ---" >&2 # Use stderr for final status
 if $error_occurred; then
     echo "One or more tasks encountered errors."
     exit 1
