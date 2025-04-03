@@ -214,12 +214,96 @@ install_fonts() {
     echo "Font installation complete."
 }
 
+add_dotfile() {
+    echo "--- Adding Dotfile ---"
+    local source_path="$1"
+    local repo_path="$2"
+    local abs_repo_dest_path repo_dest_dir copy_action
+    local normalized_target_path normalized_repo_path new_line
+
+    # Validate arguments (basic checks)
+    if [ -z "$source_path" ] || [ -z "$repo_path" ]; then
+        echo "Error: For the 'add' task, both source path (-s) and repo path (-r) arguments are required." >&2
+        return 1
+    fi
+    if [ ! -e "$source_path" ]; then
+        echo "Error: Source path does not exist: $source_path" >&2
+        return 1
+    fi
+    # Basic check to prevent absolute paths or parent directory traversal in repo path
+    if [[ "$repo_path" == /* || "$repo_path" == *..* || "$repo_path" == *:* ]]; then
+        echo "Error: Repo path '$repo_path' should be a relative path within the repo, without leading slashes, colons, or '..'." >&2
+        return 1
+    fi
+
+    # Construct full destination path in the repo
+    abs_repo_dest_path="$REPO_ROOT/$repo_path"
+    repo_dest_dir=$(dirname "$abs_repo_dest_path")
+
+    # Create parent directories in repo if they don't exist
+    if [ ! -d "$repo_dest_dir" ]; then
+        echo "Creating repository directory: $repo_dest_dir"
+        mkdir -p "$repo_dest_dir"
+        if [ $? -ne 0 ]; then
+            echo "Error: Failed to create repository directory $repo_dest_dir." >&2
+            return 1
+        fi
+    fi
+
+    # Copy the source file/directory to the repo
+    copy_action="Copying file"
+    if [ -d "$source_path" ]; then
+        copy_action="Copying directory"
+    fi
+    echo "$copy_action from '$source_path' to '$abs_repo_dest_path'"
+    cp -r "$source_path" "$abs_repo_dest_path"
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to copy to repository path $abs_repo_dest_path." >&2
+        return 1
+    fi
+
+    # Normalize the original source path for links.conf (replace $HOME with ~)
+    # Using parameter expansion for robust replacement
+    normalized_target_path="${source_path/#$HOME/\~}"
+    if [ "$normalized_target_path" == "$source_path" ]; then
+        # Path didn't start with $HOME, warn and use absolute path
+        echo "Warning: Source path '$source_path' does not start with the home directory ('$HOME'). Storing absolute path in links.conf." >&2
+    fi
+
+    # Append the entry to links.conf
+    normalized_repo_path="$repo_path" # Already relative
+    new_line="$normalized_repo_path:$normalized_target_path [all]" # Defaulting to [all] OS
+
+    echo "Adding entry to $CONFIG_FILE: $new_line"
+
+    # Check if the file ends with a newline, add one if not (optional, for cleaner appending)
+    if [ -s "$CONFIG_FILE" ] && [ "$(tail -c 1 "$CONFIG_FILE")" != "" ]; then
+        echo "" >> "$CONFIG_FILE"
+    fi
+
+    echo "$new_line" >> "$CONFIG_FILE"
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to update $CONFIG_FILE." >&2
+        # Consider attempting to revert the file copy here? For now, just error out.
+        return 1
+    fi
+
+    echo "Dotfile '$source_path' added successfully."
+    echo "You may want to manually edit '$CONFIG_FILE' to adjust OS specificity (currently '[all]')."
+    return 0
+}
+
 # --- Argument Parsing ---
 TASK="all" # Default task
+SOURCE_PATH=""
+REPO_PATH=""
 
-while getopts ":t:" opt; do
+# Use getopts for better argument handling
+while getopts ":t:s:r:" opt; do
   case $opt in
     t) TASK="$OPTARG" ;;
+    s) SOURCE_PATH="$OPTARG" ;;
+    r) REPO_PATH="$OPTARG" ;;
     \?) echo "Invalid option: -$OPTARG" >&2; exit 1 ;;
     :) echo "Option -$OPTARG requires an argument." >&2; exit 1 ;;
   esac
@@ -227,11 +311,19 @@ done
 
 shift $((OPTIND -1))
 
-if [[ "$TASK" != "all" && "$TASK" != "dotfiles" && "$TASK" != "software" && "$TASK" != "fonts" ]]; then
+# Validate Task
+if [[ "$TASK" != "all" && "$TASK" != "dotfiles" && "$TASK" != "software" && "$TASK" != "fonts" && "$TASK" != "add" ]]; then
     echo "Error: Invalid task specified: '$TASK'."
-    echo "Usage: $0 [-t <task>]"
-    echo "Available tasks: dotfiles, software, fonts, all (default)"
+    echo "Usage: $0 [-t <task>] [-s <source_path> -r <repo_path>]"
+    echo "Available tasks: dotfiles, software, fonts, add, all (default)"
+    echo "Options for 'add' task: -s /path/to/your/file -r relative/repo/path"
     exit 1
+fi
+
+# Validate arguments for 'add' task
+if [[ "$TASK" == "add" ]] && ( [ -z "$SOURCE_PATH" ] || [ -z "$REPO_PATH" ] ); then
+     echo "Error: For task 'add', both -s <source_path> and -r <repo_path> must be provided." >&2
+     exit 1
 fi
 
 # --- Main Execution ---
@@ -254,6 +346,10 @@ fi
 
 if [[ "$TASK" == "all" || "$TASK" == "fonts" ]]; then
     install_fonts || error_occurred=true
+fi
+
+if [[ "$TASK" == "add" ]]; then
+    add_dotfile "$SOURCE_PATH" "$REPO_PATH" || error_occurred=true
 fi
 
 echo "--- Installation finished ---"

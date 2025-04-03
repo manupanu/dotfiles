@@ -5,12 +5,22 @@
 .SYNOPSIS
 Installs dotfiles, software, or fonts based on specified task. Will attempt to relaunch with Admin rights if needed for software task.
 .PARAMETER Task
-Specifies the task to perform. Valid values are 'dotfiles', 'software', 'fonts', 'all'. Defaults to 'all'.
+Specifies the task to perform. Valid values are 'dotfiles', 'software', 'fonts', 'all', 'add'. Defaults to 'all'.
+.PARAMETER SourcePath
+Required for 'add' task: Path to the existing file/dir on the system
+.PARAMETER RepoPath
+Required for 'add' task: Relative path within the repo (e.g., modules/common/mytool)
 #>
 param (
+    [Parameter(Mandatory=$false, Position=0)]
+    [ValidateSet('all', 'dotfiles', 'software', 'fonts', 'add')]
+    [string]$Task = 'all',
+
     [Parameter(Mandatory=$false)]
-    [ValidateSet('all', 'dotfiles', 'software', 'fonts')]
-    [string]$Task = 'all'
+    [string]$SourcePath, # Required for 'add' task: Path to the existing file/dir on the system
+
+    [Parameter(Mandatory=$false)]
+    [string]$RepoPath # Required for 'add' task: Relative path within the repo (e.g., modules/common/mytool)
 )
 
 # --- OS Detection ---
@@ -49,7 +59,7 @@ function Test-IsAdmin {
 }
 
 function Install-Dotfiles {
-    Write-Host "--- Installing Dotfiles ---"
+    Write-Host "--- Installing/Linking Dotfiles ---"
     if (-not (Test-Path -Path $ConfigFile -PathType Leaf)) {
         Write-Error "Configuration file not found at $ConfigFile"
         return # Exit function
@@ -161,7 +171,7 @@ function Install-Dotfiles {
             Write-Error "Failed to copy to $expandedTargetPath. Check permissions. Error: $($_.Exception.Message)"
         }
     }
-    Write-Host "Dotfiles installation complete."
+    Write-Host "Dotfiles installation/linking complete."
 }
 
 function Install-Software {
@@ -256,6 +266,83 @@ function Install-Fonts {
     Write-Host "Font installation complete. A logoff/logon might be required for fonts to be fully available."
 }
 
+function Add-Dotfile {
+    Write-Host "--- Adding Dotfile ---"
+    # Validate parameters
+    if (-not $SourcePath -or -not $RepoPath) {
+        Write-Error "For the 'add' task, both -SourcePath and -RepoPath parameters are required."
+        return
+    }
+    if (-not (Test-Path -Path $SourcePath)) {
+        Write-Error "Source path does not exist: $SourcePath"
+        return
+    }
+    # Validate RepoPath: Must be relative, no leading slashes/drive letters, no upward traversal.
+    if ($RepoPath -match '^[\\/:]' -or $RepoPath -match '\.\.') {
+         Write-Error "RepoPath '$RepoPath' must be a relative path within the repository, cannot start with a drive letter, slash, or backslash, and cannot contain '..' components."
+         return
+    }
+
+    # Construct full destination path in the repo
+    $absRepoDestPath = Join-Path -Path $RepoRoot -ChildPath $RepoPath
+    $repoDestDir = Split-Path -Path $absRepoDestPath -Parent
+
+    # Create parent directories in repo if they don't exist
+    if ($repoDestDir -and (-not (Test-Path -Path $repoDestDir -PathType Container))) {
+        Write-Host "Creating repository directory: $repoDestDir"
+        try {
+            New-Item -Path $repoDestDir -ItemType Directory -Force -ErrorAction Stop | Out-Null
+        } catch {
+            Write-Error "Failed to create repository directory $repoDestDir. Error: $($_.Exception.Message)"
+            return
+        }
+    }
+
+    # Copy the source file/directory to the repo
+    $copyAction = if (Test-Path -Path $SourcePath -PathType Container) { "Copying directory" } else { "Copying file" }
+    Write-Host "$copyAction from '$SourcePath' to '$absRepoDestPath'"
+    try {
+        Copy-Item -Path $SourcePath -Destination $absRepoDestPath -Force -Recurse -ErrorAction Stop
+    } catch {
+        Write-Error "Failed to copy to repository path $absRepoDestPath. Error: $($_.Exception.Message)"
+        return
+    }
+
+    # Normalize the original source path for links.conf (replace $HOME with ~)
+    $normalizedTargetPath = $SourcePath
+    if ($SourcePath.StartsWith($HOME)) {
+        $normalizedTargetPath = '~' + $SourcePath.Substring($HOME.Length)
+        # Ensure consistent slash after ~
+        $normalizedTargetPath = $normalizedTargetPath.Replace('\', '/')
+    } else {
+        # Consider warning if path doesn't start with HOME? Might be valid in some cases.
+        Write-Warning "Source path '$SourcePath' does not start with the home directory ('$HOME'). Storing absolute path in links.conf."
+         # Replace backslashes for consistency if storing absolute path
+         $normalizedTargetPath = $normalizedTargetPath.Replace('\', '/')
+    }
+
+    # Ensure consistent slashes for repo path in links.conf
+    $normalizedRepoPath = $RepoPath.Replace('\', '/')
+
+    # Append the entry to links.conf
+    $newLine = "${normalizedRepoPath}:${normalizedTargetPath} [all]" # Explicitly delimited variables
+    Write-Host ("Adding entry to {0}: {1}" -f $ConfigFile, $newLine) # Using format operator
+    try {
+        # Add newline before adding content if file not empty and doesn't end with newline
+        if ((Get-Content $ConfigFile -Raw -ErrorAction SilentlyContinue).Length -gt 0 -and (Get-Content $ConfigFile -Tail 1) -ne '') {
+             Add-Content -Path $ConfigFile -Value ([System.Environment]::NewLine) -ErrorAction Stop
+        }
+        Add-Content -Path $ConfigFile -Value $newLine -ErrorAction Stop
+    } catch {
+        Write-Error "Failed to update $ConfigFile. Error: $($_.Exception.Message)"
+        # Consider attempting to revert the file copy here? For now, just error out.
+        return
+    }
+
+    Write-Host "Dotfile '$SourcePath' added successfully."
+    Write-Host "You may want to manually edit '$ConfigFile' to adjust OS specificity (currently '[all]')."
+}
+
 
 # --- Main Execution ---
 Write-Host "Starting installation for OS: $CurrentOS with task: $Task ..."
@@ -307,23 +394,27 @@ $global:ScriptErrorOccurred = $false
 
 function Invoke-Task {
     param (
-        [scriptblock]$ScriptBlock
+        [string]$FunctionName
     )
     try {
-        & $ScriptBlock
+        & $FunctionName
     } catch {
-        Write-Error "Task failed: $($_.Exception.Message)"
-        $global:ScriptErrorOccurred = $true
+        Write-Error "Task '$FunctionName' failed: $($_.Exception.Message)"
+        # $global:ScriptErrorOccurred = $true
+        Set-Variable -Scope Global -Name ScriptErrorOccurred -Value $true -ErrorAction Stop
     }
 }
 
-if ($Task -eq 'all' -or $Task -eq 'dotfiles') {
-    Invoke-Task -ScriptBlock ${function:Install-Dotfiles}
+if ($Task -eq 'add') {
+    # Add task does not require elevation or specific OS checks here
+     Invoke-Task -FunctionName 'Add-Dotfile'
+} elseif ($Task -eq 'all' -or $Task -eq 'dotfiles') {
+    Invoke-Task -FunctionName 'Install-Dotfiles'
 }
 
 if ($Task -eq 'all' -or $Task -eq 'software') {
      if ($CurrentOS -eq 'windows') {
-         Invoke-Task -ScriptBlock ${function:Install-Software}
+         Invoke-Task -FunctionName 'Install-Software'
      } else {
          Write-Host "Skipping software task: Not on Windows."
      }
@@ -331,7 +422,7 @@ if ($Task -eq 'all' -or $Task -eq 'software') {
 
 if ($Task -eq 'all' -or $Task -eq 'fonts') {
      if ($CurrentOS -eq 'windows') {
-        Invoke-Task -ScriptBlock ${function:Install-Fonts}
+        Invoke-Task -FunctionName 'Install-Fonts'
      } else {
          Write-Host "Skipping fonts task: Not on Windows."
      }
