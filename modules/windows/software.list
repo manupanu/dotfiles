@@ -1,0 +1,42 @@
+# Development Tools
+
+Anysphere.Cursor
+Starship.Starship
+Microsoft.WindowsTerminal
+Microsoft.PowerShell
+Microsoft.WSL
+Git.Git
+GitHub.cli
+GitHub.GitHubDesktop
+Google.PlatformTools
+Microsoft.PowerToys
+Fastfetch-cli.Fastfetch
+dbeaver.dbeaver
+
+# Browser
+
+Brave.Brave
+
+# Productivity
+
+Obsidian.Obsidian
+OBSProject.OBSStudio
+Parsec.Parsec
+AgileBits.1Password
+7zip.7zip
+
+# Runtimes
+Microsoft.VCLibs.Desktop.14
+Microsoft.UI.Xaml.2.8
+Microsoft.UI.Xaml.2.7
+Microsoft.DotNet.DesktopRuntime.8
+Microsoft.VCRedist.2015+.x86
+Microsoft.VCRedist.2013.x86
+Microsoft.VCRedist.2013.x64
+Microsoft.VCRedist.2015+.x64
+Microsoft.DotNet.DesktopRuntime.6
+Microsoft.VisualStudio.2022.BuildTools
+Microsoft.DotNet.DesktopRuntime.7
+
+# Communication
+Vencord.Vesktop
