@@ -1,8 +1,9 @@
 #Requires -Version 5.1
+# Removed static #Requires -RunAsAdministrator; elevation handled dynamically
 
 <#
 .SYNOPSIS
-Installs dotfiles, software, or fonts based on specified task.
+Installs dotfiles, software, or fonts based on specified task. Will attempt to relaunch with Admin rights if needed for software task.
 .PARAMETER Task
 Specifies the task to perform. Valid values are 'dotfiles', 'software', 'fonts', 'all'. Defaults to 'all'.
 #>
@@ -35,8 +36,20 @@ $ConfigFile = Join-Path -Path $RepoRoot -ChildPath "links.conf"
 
 # --- Function Definitions ---
 
-function Manage-Dotfiles {
-    Write-Host "--- Managing Dotfiles ---"
+# Helper function to check for Administrator rights
+function Test-IsAdmin {
+    try {
+        $identity = [System.Security.Principal.WindowsIdentity]::GetCurrent()
+        $principal = [System.Security.Principal.WindowsPrincipal]::new($identity)
+        return $principal.IsInRole([System.Security.Principal.WindowsBuiltInRole]::Administrator)
+    } catch {
+        Write-Warning "Could not determine administrator status: $($_.Exception.Message)"
+        return $false # Assume not admin if check fails
+    }
+}
+
+function Install-Dotfiles {
+    Write-Host "--- Installing Dotfiles ---"
     if (-not (Test-Path -Path $ConfigFile -PathType Leaf)) {
         Write-Error "Configuration file not found at $ConfigFile"
         return # Exit function
@@ -148,7 +161,7 @@ function Manage-Dotfiles {
             Write-Error "Failed to copy to $expandedTargetPath. Check permissions. Error: $($_.Exception.Message)"
         }
     }
-    Write-Host "Dotfiles management complete."
+    Write-Host "Dotfiles installation complete."
 }
 
 function Install-Software {
@@ -247,6 +260,43 @@ function Install-Fonts {
 # --- Main Execution ---
 Write-Host "Starting installation for OS: $CurrentOS with task: $Task ..."
 
+# Early exit if not on Windows, as primary tasks are Windows-specific
+if ($CurrentOS -ne "windows") {
+    Write-Warning "This script primarily targets Windows tasks (software, fonts). Skipping execution on $CurrentOS."
+    exit 0 # Exit gracefully on non-windows OS
+}
+
+# Check for elevation only if software task is requested
+if (($Task -eq 'all' -or $Task -eq 'software') -and (-not (Test-IsAdmin))) {
+    Write-Warning "The 'software' task requires Administrator privileges for winget."
+    Write-Host "Attempting to relaunch script with elevation..."
+
+    # Prepare arguments for relaunch
+    # Ensure the script path is quoted properly, especially if it contains spaces
+    $scriptPath = "`"$($PSCommandPath)`""
+    $powershellArgs = "-NoProfile -ExecutionPolicy Bypass -File $scriptPath"
+
+    # Pass existing parameters to the new instance
+    if ($PSBoundParameters.ContainsKey('Task')) {
+        $powershellArgs += " -Task $($PSBoundParameters['Task'])"
+    }
+    # Add other parameters here if needed in the future
+    # e.g., if ($PSBoundParameters.ContainsKey('SomeOtherParam')) { $powershellArgs += " -SomeOtherParam $($PSBoundParameters['SomeOtherParam'])" }
+
+    try {
+        # Start PowerShell elevated, passing the reconstructed arguments
+        Start-Process powershell.exe -ArgumentList $powershellArgs -Verb RunAs -ErrorAction Stop
+    } catch {
+        Write-Error "Failed to relaunch script with elevation. Please run the script manually as Administrator. Error: $($_.Exception.Message)"
+        exit 1
+    }
+    # Exit the current non-elevated instance successfully (as the elevated one should take over)
+    exit 0
+}
+
+# --- Proceed with tasks if already elevated or if software task wasn't requested ---
+
+# Check for unknown OS (should have been caught earlier, but as a safeguard)
 if ($CurrentOS -eq "unknown") {
     Write-Error "Exiting due to unsupported OS."
     exit 1 # Use non-zero exit code for errors
@@ -255,7 +305,7 @@ if ($CurrentOS -eq "unknown") {
 # Track if any task fails
 $global:ScriptErrorOccurred = $false
 
-function Run-Task {
+function Invoke-Task {
     param (
         [scriptblock]$ScriptBlock
     )
@@ -268,12 +318,12 @@ function Run-Task {
 }
 
 if ($Task -eq 'all' -or $Task -eq 'dotfiles') {
-    Run-Task -ScriptBlock ${function:Manage-Dotfiles}
+    Invoke-Task -ScriptBlock ${function:Install-Dotfiles}
 }
 
 if ($Task -eq 'all' -or $Task -eq 'software') {
      if ($CurrentOS -eq 'windows') {
-         Run-Task -ScriptBlock ${function:Install-Software}
+         Invoke-Task -ScriptBlock ${function:Install-Software}
      } else {
          Write-Host "Skipping software task: Not on Windows."
      }
@@ -281,7 +331,7 @@ if ($Task -eq 'all' -or $Task -eq 'software') {
 
 if ($Task -eq 'all' -or $Task -eq 'fonts') {
      if ($CurrentOS -eq 'windows') {
-        Run-Task -ScriptBlock ${function:Install-Fonts}
+        Invoke-Task -ScriptBlock ${function:Install-Fonts}
      } else {
          Write-Host "Skipping fonts task: Not on Windows."
      }
