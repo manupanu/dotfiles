@@ -1,0 +1,19 @@
+# install.conf.yaml for dotbot
+
+- defaults:
+    link:
+      relink: true # Relink if link exists but points elsewhere
+      create: true # Create parent directories if they don't exist
+
+- clean:
+    # Directories/files managed by dotbot link directive in the home directory
+
+- link:
+    # Link git configuration
+    ~/.gitconfig: git/.gitconfig
+
+- shell:
+    # Copy starship configuration instead of linking
+    # Using cmd.exe syntax for Windows compatibility
+    - command: if not exist "%USERPROFILE%\.config" mkdir "%USERPROFILE%\.config" & copy "starship\starship.toml" "%USERPROFILE%\.config\" /Y
+      description: Copy starship configuration to ~/.config/starship.toml
