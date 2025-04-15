@@ -1,0 +1,15 @@
+[gpg]
+	format = ssh
+[gpg "ssh"]
+	program = C:/Users/manrig/AppData/Local/1Password/app/8/op-ssh-sign.exe
+[commit]
+	gpgsign = true
+[user]
+	signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIClBF3x9IGzrqKGNUWa0O60eYndkvg+tcQFjR1qMYRMP
+	name = Manuel Anrig
+	email = me@manuelanrig.ch
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true

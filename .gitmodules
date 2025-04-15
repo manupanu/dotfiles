@@ -8,3 +8,9 @@
 [submodule "zsh/plugins/zsh-syntax-highlighting"]
 	path = zsh/plugins/zsh-syntax-highlighting
 	url = https://github.com/zsh-users/zsh-syntax-highlighting.git
+[submodule "dotbot-plugins/dotbot-ifhostname"]
+	path = dotbot-plugins/dotbot-ifhostname
+	url = https://github.com/johnlettman/dotbot-ifhostname.git
+[submodule "dotbot-plugins/dotbot-scoop"]
+	path = dotbot-plugins/dotbot-scoop
+	url = https://github.com/JamJar00/dotbot-scoop.git

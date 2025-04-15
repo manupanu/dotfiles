@@ -15,7 +15,26 @@ foreach ($PYTHON in ('python', 'python3')) {
     if (& { $ErrorActionPreference = "SilentlyContinue"
             ![string]::IsNullOrEmpty((&$PYTHON -V))
             $ErrorActionPreference = "Stop" }) {
-        &$PYTHON $(Join-Path $BASEDIR -ChildPath $DOTBOT_DIR | Join-Path -ChildPath $DOTBOT_BIN) -d $BASEDIR -c $CONFIG $Args
+        # Base arguments for dotbot
+        $dotbotExe = Join-Path $BASEDIR -ChildPath $DOTBOT_DIR | Join-Path -ChildPath $DOTBOT_BIN
+        $dotbotArgs = @($dotbotExe)
+
+        # Find all plugin directories in dotbot-plugins
+        $pluginsBaseDir = Join-Path $BASEDIR -ChildPath 'dotbot-plugins'
+        if (Test-Path $pluginsBaseDir) {
+            $pluginDirs = Get-ChildItem -Path $pluginsBaseDir -Directory
+            foreach ($dir in $pluginDirs) {
+                $dotbotArgs += "--plugin-dir", $dir.FullName
+            }
+        }
+
+        # Add standard arguments and any user-provided arguments
+        $dotbotArgs += "-d", $BASEDIR, "-c", $CONFIG
+        $dotbotArgs += $Args
+
+        # Call dotbot with all arguments
+        Write-Host "Running: $PYTHON $($dotbotArgs -join ' ')"
+        &$PYTHON $dotbotArgs
         return
     }
 }
