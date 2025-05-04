@@ -10,49 +10,57 @@ These dotfiles are managed using a custom Python script: `mdm.py` (Manuels Dotfi
 
 **Features:**
 
-*   Reads configuration from `links.yaml`.
-*   Supports common and OS-specific links (Linux, macOS, Windows).
-*   Automatically creates necessary parent directories for links.
-*   Checks for existing files or incorrect links before creating new ones.
-*   Includes a `--dry-run` mode to preview changes.
+* Reads configuration from `links.yaml`.
+* Supports common and OS-specific links (Linux, macOS, Windows).
+* Automatically creates necessary parent directories for links.
+* Checks for existing files or incorrect links before creating new ones.
+* Includes a `--dry-run` mode to preview changes.
 
 ## Prerequisites
 
-1.  **Python 3:** Ensure you have Python 3 installed.
-2.  **PyYAML:** The script requires the PyYAML library. Install it using pip:
+1. **Python 3:** Ensure you have Python 3 installed.
+2. **PyYAML:** The script requires the PyYAML library. Install it using pip:
+
     ```bash
     pip install PyYAML
     # or
     python -m pip install PyYAML
     ```
-    
-    ## Usage
-    
-    1.  **Clone the repository:**
+
+## Usage
+
+1. **Clone the repository:**
+
+    ```bash
+    git clone <repository-url> ~/dotfiles
+    cd ~/dotfiles
+    ```
+
+2. **Install prerequisites:**
+
+    ```bash
+    pip install PyYAML
+    # or
+    python -m pip install PyYAML
+    ```
+
+3. **(Optional) Review and customize `links.yaml`** to match your preferences.
+4. **Run the script:**
+    * **Dry Run (Preview changes):**
+
         ```bash
-        git clone <repository-url> ~/dotfiles
-        cd ~/dotfiles
-        ```
-    2.  **Install prerequisites:**
-        ```bash
-        pip install PyYAML
+        python mdm.py --dry-run
         # or
-        python -m pip install PyYAML
+        python mdm.py -n
         ```
-    3.  **(Optional) Review and customize `links.yaml`** to match your preferences.
-    4.  **Run the script:**
-        *   **Dry Run (Preview changes):**
-            ```bash
-            python mdm.py --dry-run
-            # or
-            python mdm.py -n
-            ```
-        *   **Apply changes:**
-            ```bash
-            python mdm.py
-            ```
-    
-        **Note for Windows Users:** You might need to run the script as Administrator or enable Developer Mode to create symbolic links. The script will provide guidance if it encounters permission errors.
+
+    * **Apply changes:**
+
+        ```bash
+        python mdm.py
+        ```
+
+    **Note for Windows Users:** You might need to run the script as Administrator or enable Developer Mode to create symbolic links. The script will provide guidance if it encounters permission errors.
 
 ## Configuration (`links.yaml`)
 
@@ -89,6 +97,6 @@ windows:
   powershell/profile/Microsoft.PowerShell_profile.ps1: ~/Documents/PowerShell/Microsoft.PowerShell_profile.ps1
 ```
 
-*   Use `~` to represent the home directory in target paths.
-*   The script will create parent directories for targets if they don't exist.
-*   Source paths are relative to the `base_dir` defined in the YAML (or the repo root if `base_dir` is `.`).
+* Use `~` to represent the home directory in target paths.
+* The script will create parent directories for targets if they don't exist.
+* Source paths are relative to the `base_dir` defined in the YAML (or the repo root if `base_dir` is `.`).
