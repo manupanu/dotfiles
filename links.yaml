@@ -26,6 +26,9 @@ linux:
   alacritty/alacritty.toml: ~/.config/alacritty/alacritty.toml
   alacritty/catppuccin-mocha.toml: ~/.config/alacritty/catppuccin-mocha.toml
 
+  # rofi
+  rofi/config.rasi: ~/.config/rofi/config.rasi  
+
 # Links specific to macOS (Darwin)
 macos:
   zsh/.zshrc: ~/.zshrc
