@@ -20,7 +20,11 @@ linux:
   # ZSH PLUGINS
   zsh/plugins/zsh-syntax-highlighting: ~/.config/zsh/plugins/zsh-syntax-highlighting
   zsh/plugins/zsh-autosuggestions: ~/.config/zsh/plugins/zsh-autosuggestions
-  zsh/plugins/zsh-history-substring-search: ~/.config/zsh/plugins/zsh-history-substring-search  
+  zsh/plugins/zsh-history-substring-search: ~/.config/zsh/plugins/zsh-history-substring-search
+
+  # Alacritty
+  alacritty/alacritty.toml: ~/.config/alacritty/alacritty.toml
+  alacritty/catppuccin-mocha.toml: ~/.config/alacritty/catppuccin-mocha.toml
 
 # Links specific to macOS (Darwin)
 macos:
