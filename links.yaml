@@ -1,0 +1,28 @@
+# links.yaml
+# Define source (in repo) -> target (in home dir) mappings.
+# Use '~' for the home directory. Target directories will be created if they don't exist.
+
+# Base directory within the repo where dotfiles are located.
+# '.' means the root of the repo.
+base_dir: .
+
+# Links common to all operating systems
+common:
+  starship/starship.toml: ~/.config/starship.toml
+  git/.gitconfig: ~/.gitconfig
+
+# Links specific to Linux
+linux:
+  zsh/.zshrc: ~/.zshrc
+  zsh/aliases.zsh: ~/.config/zsh/aliases.zsh # Assuming sourced by .zshrc
+
+# Links specific to macOS (Darwin)
+macos:
+  zsh/.zshrc: ~/.zshrc
+  zsh/aliases.zsh: ~/.config/zsh/aliases.zsh # Assuming sourced by .zshrc
+
+# Links specific to Windows
+windows:
+  # Overwrites common git/.gitconfig on Windows
+  git/.gitconfig-windows: ~/.gitconfig
+  powershell/profile/Microsoft.PowerShell_profile.ps1: ~/Documents/PowerShell/Microsoft.PowerShell_profile.ps1
