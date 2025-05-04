@@ -27,7 +27,13 @@ linux:
   alacritty/catppuccin-mocha.toml: ~/.config/alacritty/catppuccin-mocha.toml
 
   # rofi
-  rofi/config.rasi: ~/.config/rofi/config.rasi  
+  rofi/config.rasi: ~/.config/rofi/config.rasi
+
+  # vscode
+  vscode/code-flags.conf: ~/.config/code-flags.conf
+
+  # brave
+  brave/brave-flags.conf: ~/.config/brave-flags.conf 
 
 # Links specific to macOS (Darwin)
 macos:
