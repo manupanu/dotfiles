@@ -13,8 +13,14 @@ common:
 
 # Links specific to Linux
 linux:
+  # ZSH CONFIGURATION
   zsh/.zshrc: ~/.zshrc
   zsh/aliases.zsh: ~/.config/zsh/aliases.zsh # Assuming sourced by .zshrc
+
+  # ZSH PLUGINS
+  zsh/plugins/zsh-syntax-highlighting: ~/.config/zsh/plugins/zsh-syntax-highlighting
+  zsh/plugins/zsh-autosuggestions: ~/.config/zsh/plugins/zsh-autosuggestions
+  zsh/plugins/zsh-history-substring-search: ~/.config/zsh/plugins/zsh-history-substring-search  
 
 # Links specific to macOS (Darwin)
 macos:

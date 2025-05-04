@@ -54,10 +54,27 @@ These dotfiles are managed using a custom Python script: `mdm.py` (Manuels Dotfi
         python mdm.py -n
         ```
 
-    * **Apply changes:**
+    * **Normal Run (Skip existing files):**
 
         ```bash
         python mdm.py
+        ```
+
+    * **Force Run (Overwrite existing files):**
+
+        ```bash
+        python mdm.py --force
+        # or
+        python mdm.py -f
+        ```
+
+    * **Combine options:**
+
+        ```bash
+        # Dry run with force mode (preview what would be overwritten)
+        python mdm.py --dry-run --force
+        # or
+        python mdm.py -n -f
         ```
 
     **Note for Windows Users:** You might need to run the script as Administrator or enable Developer Mode to create symbolic links. The script will provide guidance if it encounters permission errors.

@@ -12,7 +12,8 @@ Features:
 - Supports common links and OS-specific links (linux, macos, windows).
 - Automatically creates necessary parent directories for target links.
 - Checks for existing files or incorrect symlinks at the target location.
-- Includes a dry-run mode to preview changes without modifying the filesystem.
+- Includes a dry-run mode (--dry-run, -n) to preview changes.
+- Force mode (--force, -f) to overwrite existing files/links.
 - Requires Python 3 and the PyYAML library.
 """
 import os
@@ -49,7 +50,7 @@ def get_os_type() -> str:
         print(f"❓ Unknown OS detected: {platform.system()}")
         return "unknown"
 
-def create_symlink(source: Path, target: Path, dry_run: bool = False) -> None:
+def create_symlink(source: Path, target: Path, dry_run: bool = False, force: bool = False) -> None:
     """
     Creates a symbolic link from source to target.
 
@@ -57,6 +58,7 @@ def create_symlink(source: Path, target: Path, dry_run: bool = False) -> None:
         source: Path to the source file/directory in the dotfiles repo.
         target: Path where the symlink should be created.
         dry_run: If True, only simulate and print actions without making changes.
+        force: If True, overwrite existing files/links at the target location.
     """
     source = source.resolve()
     target = target.expanduser()
@@ -92,16 +94,45 @@ def create_symlink(source: Path, target: Path, dry_run: bool = False) -> None:
                 print(f"✅ Link already exists and is correct: {target} -> {source}")
                 return
             else:
-                print(f"⚠️ Target is a symlink but points elsewhere:")
-                print(f"   Current: {target} -> {current_link_target}")
-                print(f"   Desired: {target} -> {source}")
-                return
+                if force:
+                    print(f"🔄 Replacing existing symlink:")
+                    print(f"   Old: {target} -> {current_link_target}")
+                    print(f"   New: {target} -> {source}")
+                    if not dry_run:
+                        target.unlink()
+                else:
+                    print(f"⚠️ Target is a symlink but points elsewhere:")
+                    print(f"   Current: {target} -> {current_link_target}")
+                    print(f"   Desired: {target} -> {source}")
+                    print("   Use --force (-f) to overwrite")
+                    return
         except OSError as e:
             print(f"⚠️ Could not read existing symlink {target}: {e}")
-            return
+            if force and not dry_run:
+                try:
+                    target.unlink()
+                except OSError as e:
+                    print(f"❌ Error removing broken symlink: {e}")
+                    return
+            else:
+                return
     elif target.exists():
-        print(f"⚠️ Target exists (not a symlink), skipping: {target}")
-        return
+        if force:
+            print(f"🔄 Removing existing file/directory: {target}")
+            if not dry_run:
+                try:
+                    if target.is_dir() and not target.is_symlink():
+                        import shutil
+                        shutil.rmtree(target)
+                    else:
+                        target.unlink()
+                except OSError as e:
+                    print(f"❌ Error removing existing target: {e}")
+                    return
+        else:
+            print(f"⚠️ Target exists (not a symlink), skipping: {target}")
+            print("   Use --force (-f) to overwrite")
+            return
 
     print(f"🔗 Creating link: {target} -> {source}")
     if not dry_run:
@@ -117,15 +148,18 @@ def create_symlink(source: Path, target: Path, dry_run: bool = False) -> None:
         except Exception as e:
             print(f"❌ Unexpected error: {e}")
 
-def main(dry_run: bool = False) -> None:
+def main(dry_run: bool = False, force: bool = False) -> None:
     """
     Main function that orchestrates the dotfile linking process.
     
     Args:
         dry_run: If True, simulate actions without making changes.
+        force: If True, overwrite existing files/links.
     """
     if dry_run:
         print("💨 Dry run mode - no changes will be made")
+    if force:
+        print("⚠️ Force mode - existing files/links will be overwritten")
     print("🚀 Starting mdm (Manuels Dotfile Manager)")
 
     script_dir = Path(__file__).parent.resolve()
@@ -188,9 +222,12 @@ def main(dry_run: bool = False) -> None:
 
         source_path = source_base_dir / source_rel
         target_path = Path(target_str)
-        create_symlink(source_path, target_path, dry_run)
+        create_symlink(source_path, target_path, dry_run, force)
 
     print("\n🏁 Dotfiles linking process complete")
 
 if __name__ == "__main__":
-    main(dry_run=("--dry-run" in sys.argv or "-n" in sys.argv))
+    main(
+        dry_run=("--dry-run" in sys.argv or "-n" in sys.argv),
+        force=("--force" in sys.argv or "-f" in sys.argv)
+    )

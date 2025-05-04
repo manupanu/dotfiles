@@ -2,7 +2,7 @@
 # export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
 
 # Path to your Oh My Zsh installation.
-export ZSH="$HOME/.oh-my-zsh"
+export OMZ_DIR="/usr/share/oh-my-zsh"
 
 # --- Oh My Zsh Settings --- #
 
@@ -20,14 +20,14 @@ ENABLE_CORRECTION="true"
 HIST_STAMPS="dd.mm.yyyy"
 
 # Path to custom configuration files (plugins, themes, etc.).
-ZSH_CUSTOM=$HOME/.config/zsh/custom
+ZSH_CUSTOM=$HOME/.config/zsh
 
 # Plugins to load (git is default).
 # Standard plugins: $ZSH/plugins/
 # Custom plugins: $ZSH_CUSTOM/plugins/
 plugins=(git zsh-syntax-highlighting zsh-autosuggestions)
 
-source $ZSH/oh-my-zsh.sh
+source $OMZ_DIR/oh-my-zsh.sh
 
 # --- User Configuration --- #
 
