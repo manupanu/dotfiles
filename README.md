@@ -32,8 +32,8 @@ These dotfiles are managed using a custom Python script: `mdm.py` (Manuels Dotfi
 1. **Clone the repository:**
 
     ```bash
-    git clone <repository-url> ~/dotfiles
-    cd ~/dotfiles
+    git clone https://github.com/manupanu/dotfiles ~/.dotfiles
+    cd ~/.dotfiles
     ```
 
 2. **Install prerequisites:**
