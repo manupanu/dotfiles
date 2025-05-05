@@ -30,7 +30,7 @@ except ImportError:
     sys.exit(1)
 
 # Configuration
-CONFIG_FILE = "links.yaml"
+CONFIG_FILE = "mdm_conf.yaml"
 
 def get_os_type() -> str:
     """
