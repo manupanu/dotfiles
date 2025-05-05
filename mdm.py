@@ -286,6 +286,13 @@ def main(dry_run: bool = False, force: bool = False) -> None:
     else:
         print("⚠️ Unknown OS - using only common links")
 
+    import socket
+    hostname = socket.gethostname()
+    host_section = f"host-{hostname}"
+    if host_section in config and isinstance(config[host_section], dict):
+        print(f"\U0001F4BB Detected host section: {host_section}")
+        links_to_create.update(config[host_section])
+
     if not links_to_create:
         print("🤷 No links defined for this configuration")
         return

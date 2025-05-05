@@ -63,15 +63,15 @@ linux:
     type: link
     target: ~/.config/brave-flags.conf
 
-  # Example: copy a config file
-  linux/special.conf:
-    type: copy
-    target: ~/.config/special.conf
+  # # Example: copy a config file
+  # linux/special.conf:
+  #   type: copy
+  #   target: ~/.config/special.conf
 
-  # Example: execute a bash script
-  scripts/linux-setup.sh:
-    type: exec
-    args: ["--linux"]
+  # # Example: execute a bash script
+  # scripts/linux-setup.sh:
+  #   type: exec
+  #   args: ["--linux"]
 
 macos:
   zsh/.zshrc:
@@ -86,7 +86,7 @@ macos:
     args: ["--macos"]
 
 windows:
-  git/.gitconfig-windows-sbc:
+  git/.gitconfig-windows:
     type: link
     target: ~/.gitconfig
   powershell/Microsoft.PowerShell_profile.ps1:
@@ -102,10 +102,17 @@ windows:
     target: ~/.config/komorebi/komorebi.json
   komorebi/komorebi.bar.json:
     type: link
-    target: ~/.config/komorebi/komorebi.bar.json
+    target: ~/.config/komorebi.bar.json
   komorebi/applications.json:
     type: link
     target: ~/.config/komorebi/applications.json
   komorebi/whkdrc:
     type: link
     target: ~/.config/whkdrc
+
+# Host-specific (by hostname)
+# Example: Only link this file on this specific host
+host-CH-5CD138M619:
+  git/.gitconfig-windows-sbc:
+    type: link
+    target: ~/.gitconfig
