@@ -89,9 +89,23 @@ windows:
   git/.gitconfig-windows-sbc:
     type: link
     target: ~/.gitconfig
-  powershell/profile/Microsoft.PowerShell_profile.ps1:
+  powershell/Microsoft.PowerShell_profile.ps1:
     type: link
     target: ~/Documents/PowerShell/Microsoft.PowerShell_profile.ps1
   starship/starship.toml:
     type: copy
     target: ~/.config/starship.toml
+
+  # Komorebi WindowManager
+  komorebi/komorebi.json:
+    type: link
+    target: ~/.config/komorebi/komorebi.json
+  komorebi/komorebi.bar.json:
+    type: link
+    target: ~/.config/komorebi/komorebi.bar.json
+  komorebi/applications.json:
+    type: link
+    target: ~/.config/komorebi/applications.json
+  komorebi/whkdrc:
+    type: link
+    target: ~/.config/whkdrc
