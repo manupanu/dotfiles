@@ -78,11 +78,12 @@ These dotfiles are managed using a custom Python script: `mdm.py` (Manuels Dotfi
         # or
         python mdm.py -n -f
         ```
+
 > [!INFO]
-> **Note for Windows Users:** You might need to run the script as Administrator or enable Developer Mode to create symbolic links. The script will provide guidance if it encounters permission errors. 
-> 
+> **Note for Windows Users:** You might need to run the script as Administrator or enable Developer Mode to create symbolic links. The script will provide guidance if it encounters permission errors.
+>
 > **Host-specific links:** If you want to apply links only on a specific machine, add a section named `host-HOSTNAME:` to your config (replace `HOSTNAME` with your computer's hostname as returned by Python's `socket.gethostname()`).
-    
+
 ## Configuration (`mdm_conf.yaml`)
 
 The core of the setup is the `mdm_conf.yaml` file. It defines which files/directories in this repository should be linked, copied, or executed.
@@ -126,9 +127,9 @@ host-MYHOSTNAME:
 
 ### Action Types
 
-- **link** (default): Create a symbolic link from the repo to the target location.
-- **copy**: Copy the file or directory from the repo to the target location.
-- **exec**: Execute a script from the repo. You can provide arguments with the `args` list.
+* **link** (default): Create a symbolic link from the repo to the target location.
+* **copy**: Copy the file or directory from the repo to the target location.
+* **exec**: Execute a script from the repo. You can provide arguments with the `args` list.
 
 * Use `~` to represent the home directory in target paths.
 * The script will create parent directories for targets if they don't exist.
