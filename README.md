@@ -76,9 +76,9 @@ These dotfiles are managed using a custom Python script: `mdm.py` (Manuels Dotfi
         # or
         python mdm.py -n -f
         ```
-
-    **Note for Windows Users:** You might need to run the script as Administrator or enable Developer Mode to create symbolic links. The script will provide guidance if it encounters permission errors.
-
+    > [!WARNING]
+    > **Note for Windows Users:** You might need to run the script as Administrator or enable Developer Mode to create symbolic links. The script will provide guidance if it encounters permission errors. 
+    
 ## Configuration (`links.yaml`)
 
 The core of the setup is the `links.yaml` file. It defines which files/directories in this repository should be linked to which locations in your home directory.
