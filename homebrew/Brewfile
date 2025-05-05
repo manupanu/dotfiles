@@ -1,0 +1,37 @@
+tap "homebrew/bundle"
+tap "homebrew/cask-fonts"
+tap "homebrew/services"
+
+# HOMEBREW
+brew "bat"
+brew "diffutils"
+brew "eza"
+brew "fd"
+brew "ffmpeg"
+brew "fzf"
+brew "gh"
+brew "gifsicle"
+brew "zsh"
+brew "git"
+brew "git-delta"
+brew "grep"
+brew "jq"
+brew "nvm"
+brew "ripgrep"
+brew "wget"
+brew "yarn"
+brew "pyenv"
+brew "neovim"
+brew "curl"
+brew "tree"
+
+
+
+# CASKS
+cask "1password"
+cask "discord"
+cask "font-fira-code"
+cask "font-fira-code-nerd-font"
+cask "imageoptim"
+cask "obs"
+cask "visual-studio-code"
