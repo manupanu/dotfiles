@@ -1,47 +1,102 @@
 # links.yaml
-# Define source (in repo) -> target (in home dir) mappings.
-# Use '~' for the home directory. Target directories will be created if they don't exist.
+# Define dotfile actions: link (default), copy, or exec.
+# Each entry can be a string (for backward compatibility, means link) or a mapping with 'type' and 'target' (and optionally 'args').
 
-# Base directory within the repo where dotfiles are located.
-# '.' means the root of the repo.
 base_dir: .
 
-# Links common to all operating systems
 common:
-  starship/starship.toml: ~/.config/starship.toml
-  git/.gitconfig: ~/.gitconfig
+  starship/starship.toml:
+    type: link
+    target: ~/.config/starship.toml
+  git/.gitconfig:
+    type: link
+    target: ~/.gitconfig
+  # Example of copying a file (applies to all OS)
+  somefile.txt:
+    type: copy
+    target: ~/somefile.txt
+  # Example of executing a script (applies to all OS)
+  scripts/setup.sh:
+    type: exec
+    args: ["--init"]
 
-# Links specific to Linux
 linux:
   # ZSH CONFIGURATION
-  zsh/.zshrc: ~/.zshrc
-  zsh/aliases.zsh: ~/.config/zsh/aliases.zsh # Assuming sourced by .zshrc
+  zsh/.zshrc:
+    type: link
+    target: ~/.zshrc
+  zsh/aliases.zsh:
+    type: link
+    target: ~/.config/zsh/aliases.zsh
 
   # ZSH PLUGINS
-  zsh/plugins/zsh-syntax-highlighting: ~/.config/zsh/plugins/zsh-syntax-highlighting
-  zsh/plugins/zsh-autosuggestions: ~/.config/zsh/plugins/zsh-autosuggestions
-  zsh/plugins/zsh-history-substring-search: ~/.config/zsh/plugins/zsh-history-substring-search
+  zsh/plugins/zsh-syntax-highlighting:
+    type: link
+    target: ~/.config/zsh/plugins/zsh-syntax-highlighting
+  zsh/plugins/zsh-autosuggestions:
+    type: link
+    target: ~/.config/zsh/plugins/zsh-autosuggestions
+  zsh/plugins/zsh-history-substring-search:
+    type: link
+    target: ~/.config/zsh/plugins/zsh-history-substring-search
 
   # Alacritty
-  alacritty/alacritty.toml: ~/.config/alacritty/alacritty.toml
-  alacritty/catppuccin-mocha.toml: ~/.config/alacritty/catppuccin-mocha.toml
+  alacritty/alacritty.toml:
+    type: link
+    target: ~/.config/alacritty/alacritty.toml
+  alacritty/catppuccin-mocha.toml:
+    type: link
+    target: ~/.config/alacritty/catppuccin-mocha.toml
 
   # rofi
-  rofi/config.rasi: ~/.config/rofi/config.rasi
+  rofi/config.rasi:
+    type: link
+    target: ~/.config/rofi/config.rasi
 
   # vscode
-  vscode/code-flags.conf: ~/.config/code-flags.conf
+  vscode/code-flags.conf:
+    type: link
+    target: ~/.config/code-flags.conf
 
   # brave
-  brave/brave-flags.conf: ~/.config/brave-flags.conf 
+  brave/brave-flags.conf:
+    type: link
+    target: ~/.config/brave-flags.conf
 
-# Links specific to macOS (Darwin)
+  # Example: copy a config file
+  linux/special.conf:
+    type: copy
+    target: ~/.config/special.conf
+
+  # Example: execute a bash script
+  scripts/linux-setup.sh:
+    type: exec
+    args: ["--linux"]
+
 macos:
-  zsh/.zshrc: ~/.zshrc
-  zsh/aliases.zsh: ~/.config/zsh/aliases.zsh # Assuming sourced by .zshrc
+  zsh/.zshrc:
+    type: link
+    target: ~/.zshrc
+  zsh/aliases.zsh:
+    type: link
+    target: ~/.config/zsh/aliases.zsh
+  # Example: execute a bash script
+  scripts/macos-setup.sh:
+    type: exec
+    args: ["--macos"]
 
-# Links specific to Windows
 windows:
-  # Overwrites common git/.gitconfig on Windows
-  git/.gitconfig-windows: ~/.gitconfig
-  powershell/profile/Microsoft.PowerShell_profile.ps1: ~/Documents/PowerShell/Microsoft.PowerShell_profile.ps1
+  git/.gitconfig-windows:
+    type: link
+    target: ~/.gitconfig
+  powershell/profile/Microsoft.PowerShell_profile.ps1:
+    type: link
+    target: ~/Documents/PowerShell/Microsoft.PowerShell_profile.ps1
+  # Example: copy a file
+  windows/special.conf:
+    type: copy
+    target: ~/special.conf
+  # Example: execute a PowerShell script
+  scripts/windows-setup.ps1:
+    type: exec
+    args: ["-WindowsMode"]

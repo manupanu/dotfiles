@@ -148,6 +148,84 @@ def create_symlink(source: Path, target: Path, dry_run: bool = False, force: boo
         except Exception as e:
             print(f"❌ Unexpected error: {e}")
 
+def copy_item(source: Path, target: Path, dry_run: bool = False, force: bool = False) -> None:
+    """
+    Copies a file or directory from source to target.
+    """
+    import shutil
+    source = source.resolve()
+    target = target.expanduser()
+    print(f"\n---\nCopying to Target: {target}")
+    if not source.exists():
+        print(f"⚠️ Source does not exist, skipping: {source}")
+        return
+    target_dir = target.parent
+    if not target_dir.exists():
+        print(f"🔧 Creating directory: {target_dir}")
+        if not dry_run:
+            try:
+                target_dir.mkdir(parents=True, exist_ok=True)
+            except OSError as e:
+                print(f"❌ Error creating directory {target_dir}: {e}")
+                return
+    elif not target_dir.is_dir():
+        print(f"❌ Target parent exists but is not a directory: {target_dir}")
+        return
+    if target.exists():
+        if force:
+            print(f"🔄 Removing existing file/directory: {target}")
+            if not dry_run:
+                try:
+                    if target.is_dir() and not target.is_symlink():
+                        shutil.rmtree(target)
+                    else:
+                        target.unlink()
+                except OSError as e:
+                    print(f"❌ Error removing existing target: {e}")
+                    return
+        else:
+            print(f"⚠️ Target exists, skipping: {target}")
+            print("   Use --force (-f) to overwrite")
+            return
+    print(f"📋 Copying: {source} -> {target}")
+    if not dry_run:
+        try:
+            if source.is_dir():
+                shutil.copytree(source, target)
+            else:
+                shutil.copy2(source, target)
+            print(f"✅ Successfully copied: {target}")
+        except Exception as e:
+            print(f"❌ Error copying: {e}")
+
+def exec_script(source: Path, args=None, dry_run: bool = False) -> None:
+    """
+    Executes a script with optional arguments.
+    Uses bash for Linux/macOS, PowerShell for Windows.
+    """
+    import subprocess
+    source = source.resolve()
+    if not source.exists():
+        print(f"⚠️ Script does not exist, skipping: {source}")
+        return
+    if args is None:
+        args = []
+    print(f"\n---\nExecuting script: {source} {' '.join(map(str, args))}")
+    if dry_run:
+        print(f"💨 Dry run: would execute {source} {' '.join(map(str, args))}")
+        return
+    if platform.system().lower() == "windows":
+        cmd = ["powershell", "-ExecutionPolicy", "Bypass", "-File", str(source)] + list(map(str, args))
+    else:
+        cmd = ["bash", str(source)] + list(map(str, args))
+    try:
+        result = subprocess.run(cmd, check=True)
+        print(f"✅ Script executed with exit code {result.returncode}")
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Script failed with exit code {e.returncode}")
+    except Exception as e:
+        print(f"❌ Error executing script: {e}")
+
 def main(dry_run: bool = False, force: bool = False) -> None:
     """
     Main function that orchestrates the dotfile linking process.
@@ -213,16 +291,33 @@ def main(dry_run: bool = False, force: bool = False) -> None:
         return
 
     print(f"\nProcessing {len(links_to_create)} links:")
-    for idx, (source_rel, target_str) in enumerate(links_to_create.items(), 1):
+    for idx, (source_rel, entry) in enumerate(links_to_create.items(), 1):
         print(f"\n[{idx}/{len(links_to_create)}] -----")
-        
+        # Support both string (legacy) and dict (new)
+        if isinstance(entry, str):
+            action_type = "link"
+            target_str = entry
+            args = None
+        elif isinstance(entry, dict):
+            action_type = entry.get("type", "link")
+            target_str = entry.get("target")
+            args = entry.get("args")
+        else:
+            print(f"⚠️ Invalid link entry: {source_rel} -> {entry}")
+            continue
         if not isinstance(source_rel, str) or not isinstance(target_str, str):
             print(f"⚠️ Invalid link entry: {source_rel} -> {target_str}")
             continue
-
         source_path = source_base_dir / source_rel
         target_path = Path(target_str)
-        create_symlink(source_path, target_path, dry_run, force)
+        if action_type == "link":
+            create_symlink(source_path, target_path, dry_run, force)
+        elif action_type == "copy":
+            copy_item(source_path, target_path, dry_run, force)
+        elif action_type == "exec":
+            exec_script(source_path, args, dry_run)
+        else:
+            print(f"⚠️ Unknown action type '{action_type}' for {source_rel}")
 
     print("\n🏁 Dotfiles linking process complete")
 
