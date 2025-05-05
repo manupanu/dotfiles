@@ -76,8 +76,8 @@ These dotfiles are managed using a custom Python script: `mdm.py` (Manuels Dotfi
         # or
         python mdm.py -n -f
         ```
-    > [!WARNING]
-    > **Note for Windows Users:** You might need to run the script as Administrator or enable Developer Mode to create symbolic links. The script will provide guidance if it encounters permission errors. 
+> [!WARNING]
+> **Note for Windows Users:** You might need to run the script as Administrator or enable Developer Mode to create symbolic links. The script will provide guidance if it encounters permission errors. 
     
 ## Configuration (`links.yaml`)
 
