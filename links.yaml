@@ -5,20 +5,20 @@
 base_dir: .
 
 common:
-  starship/starship.toml:
-    type: link
-    target: ~/.config/starship.toml
-  git/.gitconfig:
-    type: link
-    target: ~/.gitconfig
-  # Example of copying a file (applies to all OS)
-  somefile.txt:
-    type: copy
-    target: ~/somefile.txt
-  # Example of executing a script (applies to all OS)
-  scripts/setup.sh:
-    type: exec
-    args: ["--init"]
+  # starship/starship.toml:
+  #   type: link
+  #   target: ~/.config/starship.toml
+  # git/.gitconfig:
+  #   type: link
+  #   target: ~/.gitconfig
+  # # Example of copying a file (applies to all OS)
+  # somefile.txt:
+  #   type: copy
+  #   target: ~/somefile.txt
+  # # Example of executing a script (applies to all OS)
+  # scripts/setup.sh:
+  #   type: exec
+  #   args: ["--init"]
 
 linux:
   # ZSH CONFIGURATION
@@ -86,17 +86,12 @@ macos:
     args: ["--macos"]
 
 windows:
-  git/.gitconfig-windows:
+  git/.gitconfig-windows-sbc:
     type: link
     target: ~/.gitconfig
   powershell/profile/Microsoft.PowerShell_profile.ps1:
     type: link
     target: ~/Documents/PowerShell/Microsoft.PowerShell_profile.ps1
-  # Example: copy a file
-  windows/special.conf:
+  starship/starship.toml:
     type: copy
-    target: ~/special.conf
-  # Example: execute a PowerShell script
-  scripts/windows-setup.ps1:
-    type: exec
-    args: ["-WindowsMode"]
+    target: ~/.config/starship.toml
