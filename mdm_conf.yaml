@@ -40,6 +40,11 @@ linux:
     type: link
     target: ~/.config/zsh/plugins/zsh-history-substring-search
 
+  # Hyprland Configuration
+  hypr:
+    type: link
+    target: ~/.config/hypr
+    
   # Alacritty
   alacritty/alacritty.toml:
     type: link
