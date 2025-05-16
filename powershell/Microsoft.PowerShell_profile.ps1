@@ -126,5 +126,3 @@ admin/su - Run as administrator
 head/tail - View file contents
 "@ | Write-Host
 }
-
-Write-Host "Type 'Show-Help' to see available commands" -ForegroundColor Yellow
