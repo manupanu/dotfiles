@@ -41,6 +41,10 @@ linux:
     target: ~/.config/zsh/plugins/zsh-history-substring-search
 
 macos:
+  # Git configuration
+  git/.gitconfig-mac:
+    type: link
+    target: ~/.gitconfig
   # ZSH CONFIGURATION
   zsh/.zshrc:
     type: link
