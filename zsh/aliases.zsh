@@ -33,17 +33,9 @@ mcd() {
     mkdir -p -- "$1" && cd -P -- "$1"
 }
 
-# System update (Debian/Ubuntu)
-alias update='sudo nala update && sudo nala upgrade -y'
-
 # Edit config files (adjust editor if needed)
 alias ezshrc='${EDITOR:-nvim} ~/.zshrc'
 alias ealiases='${EDITOR:-nvim} ~/.config/zsh/custom/aliases.zsh' 
-
-# Alias to start ssh-agent and add key from 1Password
-alias op-ssh='if ! op user get --me >/dev/null 2>&1; then eval $(op signin); fi && \
-    if ! ssh-add -l >/dev/null 2>&1; then eval $(ssh-agent -s); fi && \
-    op read "op://Private/hoh6xyfxtij4tth5pus7nnmrc4/private_key?ssh-format=openssh" | tr -d "\r" | ssh-add -'
 
 # Docker aliases
 alias d='docker'

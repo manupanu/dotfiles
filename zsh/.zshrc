@@ -1,8 +1,11 @@
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
 
+# Editor
+export EDITOR='code'
+
 # Path to your Oh My Zsh installation.
-export OMZ_DIR="/usr/share/oh-my-zsh"
+export ZSH="$HOME/.oh-my-zsh"
 
 # --- Oh My Zsh Settings --- #
 
@@ -27,7 +30,7 @@ ZSH_CUSTOM=$HOME/.config/zsh
 # Custom plugins: $ZSH_CUSTOM/plugins/
 plugins=(git zsh-syntax-highlighting zsh-autosuggestions)
 
-source $OMZ_DIR/oh-my-zsh.sh
+source $ZSH/oh-my-zsh.sh
 
 # --- User Configuration --- #
 
@@ -38,3 +41,9 @@ fi
 
 # Initialize Starship prompt.
 eval "$(starship init zsh)"
+
+# Source Node Version Manager
+source /opt/homebrew/opt/nvm/nvm.sh
+
+# Add Homebrew binaries to path
+export PATH="/opt/homebrew/bin:$PATH"
