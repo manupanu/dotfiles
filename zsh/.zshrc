@@ -49,3 +49,6 @@ eval "$(starship init zsh)"
 
 # Add Homebrew binaries to path
 export PATH="/opt/homebrew/bin:$PATH"
+
+# 1Password CLI
+eval "$(op completion zsh)"; compdef _op op # 1Password CLI completion
