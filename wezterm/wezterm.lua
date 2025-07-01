@@ -14,7 +14,7 @@ config.initial_rows = 28
 config.font_size = 14
 config.font = wezterm.font("JetBrainsMono Nerd Font")
 config.color_scheme = 'Catppuccin Mocha'
-config.window_background_opacity = 0.8
+config.window_background_opacity = 1
 config.macos_window_background_blur = 20 -- For macOS, this will apply a blur effect to the window background.
 
 config.window_background_gradient = {
