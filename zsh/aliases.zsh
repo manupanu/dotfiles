@@ -75,3 +75,6 @@ alias grep='grep --color=auto'
 alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'
 alias md='mkdir -p'
+
+# Add keyfile for sbc-hid
+alias sbc-hid='sbc-hid --keys ~/Developer/SBC-Tools/keys.json'

@@ -40,7 +40,9 @@ if [ -f "$ZSH_CUSTOM/aliases.zsh" ]; then
 fi
 
 # Initialize Starship prompt.
-eval "$(starship init zsh)"
+if command -v starship >/dev/null 2>&1; then
+  eval "$(starship init zsh)"
+fi
 
 # Load Node Version Manager
  export NVM_DIR="$HOME/.nvm"
@@ -52,3 +54,11 @@ export PATH="/opt/homebrew/bin:$PATH"
 
 # 1Password CLI
 eval "$(op completion zsh)"; compdef _op op # 1Password CLI completion
+
+# Rustup
+export PATH="/opt/homebrew/opt/rustup/bin:$PATH"
+
+# Load Rust binaries
+if [ -d "$HOME/.cargo/bin" ]; then
+  export PATH="$HOME/.cargo/bin:$PATH"
+fi
