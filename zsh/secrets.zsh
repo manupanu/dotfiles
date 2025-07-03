@@ -1,0 +1,1 @@
+export JIRA_API_KEY="op://Private/JIRA API Dashboard/credential"

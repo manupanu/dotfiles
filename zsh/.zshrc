@@ -52,8 +52,14 @@ fi
 # Add Homebrew binaries to path
 export PATH="/opt/homebrew/bin:$PATH"
 
+# 1Password Socket
+export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock
 # 1Password CLI
 eval "$(op completion zsh)"; compdef _op op # 1Password CLI completion
+# Load 1Password environment variables
+op  inject --in-file "${HOME}/.dotfiles/zsh/secrets.zsh" | while read -r line; do
+  eval "$line"
+done
 
 # Rustup
 export PATH="/opt/homebrew/opt/rustup/bin:$PATH"
