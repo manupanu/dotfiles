@@ -28,7 +28,7 @@ ZSH_CUSTOM=$HOME/.config/zsh
 # Plugins to load (git is default).
 # Standard plugins: $ZSH/plugins/
 # Custom plugins: $ZSH_CUSTOM/plugins/
-plugins=(git zsh-syntax-highlighting zsh-autosuggestions)
+plugins=(git zsh-syntax-highlighting zsh-autosuggestions direnv)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -52,14 +52,17 @@ fi
 # Add Homebrew binaries to path
 export PATH="/opt/homebrew/bin:$PATH"
 
+# Homebrew autocompletion
+if type brew &>/dev/null; then
+  FPATH="$(brew --prefix)/share/zsh/site-functions:$FPATH"
+  autoload -Uz compinit
+  compinit
+fi
+
 # 1Password Socket
 export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock
 # 1Password CLI
 eval "$(op completion zsh)"; compdef _op op # 1Password CLI completion
-# Load 1Password environment variables
-op  inject --in-file "${HOME}/.dotfiles/zsh/secrets.zsh" | while read -r line; do
-  eval "$line"
-done
 
 # Rustup
 export PATH="/opt/homebrew/opt/rustup/bin:$PATH"
