@@ -21,6 +21,8 @@
 
 ; New Window/Tab
 <!n::Send "^n"         ; Cmd+N → Ctrl+N
+<!t::Send "^t"         ; Cmd+T → Ctrl+T (New Tab)
+<!l::Send "^l"         ; Cmd+L → Ctrl+L (Focus address bar)
 
 ; Navigation: Start/End of line
 <!Left::Send "{Home}"          ; Cmd+Left → Home
