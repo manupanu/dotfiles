@@ -31,3 +31,23 @@
 ; Navigation: Top/Bottom of document
 <!Up::Send "^Home"             ; Cmd+Up → Ctrl+Home
 <!Down::Send "^End"            ; Cmd+Down → Ctrl+End
+
+; RAlt+B: Launch or focus Microsoft Edge
+RAlt & b::{
+    WinTitle := "ahk_exe msedge.exe"
+    if WinExist(WinTitle) {
+        WinActivate
+    } else {
+        Run "msedge.exe"
+    }
+}
+
+; RAlt+T: Launch or focus Windows Terminal
+RAlt & t::{
+    WinTitle := "ahk_exe WindowsTerminal.exe"
+    if WinExist(WinTitle) {
+        WinActivate
+    } else {
+        Run "wt.exe"
+    }
+}
