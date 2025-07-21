@@ -84,20 +84,6 @@ windows:
     type: copy
     target: ~/.config/starship.toml
 
-  # Komorebi WindowManager
-  komorebi/komorebi.json:
-    type: link
-    target: ~/.config/komorebi/komorebi.json
-  komorebi/komorebi.bar.json:
-    type: link
-    target: ~/.config/komorebi.bar.json
-  komorebi/applications.json:
-    type: link
-    target: ~/.config/komorebi/applications.json
-  komorebi/whkdrc:
-    type: link
-    target: ~/.config/whkdrc
-
 # Host-specific (by hostname)
 # Example: Only link this file on this specific host
 host-CH-5CD138M619:
