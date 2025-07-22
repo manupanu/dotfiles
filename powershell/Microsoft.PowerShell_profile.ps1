@@ -1,10 +1,24 @@
 Invoke-Expression (& 'C:\Program Files\starship\bin\starship.exe' init powershell --print-full-init | Out-String)
 
-# Import Terminal-Icons module
-if (-not (Get-Module -ListAvailable -Name Terminal-Icons)) {
-    Install-Module -Name Terminal-Icons -Scope CurrentUser -Force -SkipPublisherCheck
+
+# Lazy-load Terminal-Icons only when a command that needs it is run
+function Ensure-TerminalIcons {
+    if (-not (Get-Module -Name Terminal-Icons)) {
+        if (-not (Get-Module -ListAvailable -Name Terminal-Icons)) {
+            try {
+                Install-Module -Name Terminal-Icons -Scope CurrentUser -Force -SkipPublisherCheck
+            } catch {
+                Write-Warning "Failed to install Terminal-Icons: $_"
+                return
+            }
+        }
+        try {
+            Import-Module -Name Terminal-Icons -ErrorAction Stop
+        } catch {
+            Write-Warning "Failed to import Terminal-Icons: $_"
+        }
+    }
 }
-Import-Module -Name Terminal-Icons
 
 # Enhanced PSReadLine Configuration
 Set-PSReadLineOption -PredictionSource History
@@ -17,9 +31,15 @@ Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
 Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
 Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
 
-# Enhanced Listing
-function la { Get-ChildItem -Path . -Force | Format-Table -AutoSize }
-function ll { Get-ChildItem -Path . -Force -Hidden | Format-Table -AutoSize }
+# Enhanced Listing (with lazy Terminal-Icons)
+function la {
+    Ensure-TerminalIcons
+    Get-ChildItem -Path . -Force | Format-Table -AutoSize
+}
+function ll {
+    Ensure-TerminalIcons
+    Get-ChildItem -Path . -Force -Hidden | Format-Table -AutoSize
+}
 
 # Quick Edit Profile
 function Edit-Profile {

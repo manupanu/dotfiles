@@ -21,25 +21,10 @@ common:
   #   args: ["--init"]
 
 linux:
-  # ZSH CONFIGURATION
-  zsh/.zshrc:
+  # Bash configuration
+  bash/.bashrc-wsl:
     type: link
-    target: ~/.zshrc
-  zsh/aliases.zsh:
-    type: link
-    target: ~/.config/zsh/aliases.zsh
-
-  # ZSH PLUGINS
-  zsh/plugins/zsh-syntax-highlighting:
-    type: link
-    target: ~/.config/zsh/plugins/zsh-syntax-highlighting
-  zsh/plugins/zsh-autosuggestions:
-    type: link
-    target: ~/.config/zsh/plugins/zsh-autosuggestions
-  zsh/plugins/zsh-history-substring-search:
-    type: link
-    target: ~/.config/zsh/plugins/zsh-history-substring-search
-
+    target: ~/.bashrc
 macos:
   # Git configuration
   git/.gitconfig-mac:
@@ -88,5 +73,12 @@ windows:
 # Example: Only link this file on this specific host
 host-CH-5CD138M619:
   git/.gitconfig-windows-sbc:
+    type: link
+    target: ~/.gitconfig
+  powershell/Microsoft.PowerShell_profile.ps1:
+    type: link
+    target: ~/OneDrive - Specialized Bicycle Components/Documents/PowerShell/Microsoft.PowerShell_profile.ps1
+host-CH-5CD138M619-WSL:
+  git/.gitconfig-windows-sbc-wsl:
     type: link
     target: ~/.gitconfig
