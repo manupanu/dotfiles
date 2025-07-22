@@ -122,3 +122,8 @@ eval "$(pyenv init --path)"
 eval "$(pyenv virtualenv-init -)"
 
 export PATH="$HOME/.local/bin:$PATH"
+
+alias ssh='ssh.exe'
+alias ssh-add='ssh-add.exe'
+
+eval "$(starship init bash)"

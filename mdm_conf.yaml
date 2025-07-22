@@ -21,10 +21,8 @@ common:
   #   args: ["--init"]
 
 linux:
-  # Bash configuration
-  bash/.bashrc-wsl:
-    type: link
-    target: ~/.bashrc
+ 
+  
 macos:
   # Git configuration
   git/.gitconfig-mac:
@@ -82,3 +80,9 @@ host-CH-5CD138M619-WSL:
   git/.gitconfig-windows-sbc-wsl:
     type: link
     target: ~/.gitconfig
+  bash/.bashrc-wsl:
+    type: link
+    target: ~/.bashrc
+  starship/starship.toml:
+    type: link
+    target: ~/.config/starship.toml

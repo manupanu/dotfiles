@@ -1,10 +1,7 @@
-[core]
-        sshCommand = ssh.exe
-        
 [user]
-	name = Manuel Anrig
-	email = me@manuelanrig.ch
-	signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIClBF3x9IGzrqKGNUWa0O60eYndkvg+tcQFjR1qMYRMP
+  name = Manuel Anrig
+  email = me@manuelanrig.ch
+  signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIClBF3x9IGzrqKGNUWa0O60eYndkvg+tcQFjR1qMYRMP
 
 [gpg]
   format = ssh
