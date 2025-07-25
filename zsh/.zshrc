@@ -34,29 +34,29 @@ source $ZSH/oh-my-zsh.sh
 
 # --- User Configuration --- #
 
+# Set up PATH
+# Order is important. Prepending ensures user-installed binaries are found first.
+export PATH="/opt/homebrew/bin:$PATH"
+export PATH="/opt/homebrew/opt/rustup/bin:$PATH"
+if [ -d "$HOME/.cargo/bin" ]; then
+  export PATH="$HOME/.cargo/bin:$PATH"
+fi
+
 # Source custom aliases if file exists
 if [ -f "$ZSH_CUSTOM/aliases.zsh" ]; then
     source "$ZSH_CUSTOM/aliases.zsh"
 fi
 
-# Initialize Starship prompt.
-if command -v starship >/dev/null 2>&1; then
-  eval "$(starship init zsh)"
-fi
-
 # Load Node Version Manager
- export NVM_DIR="$HOME/.nvm"
-  [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
-  [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
-
-# Add Homebrew binaries to path
-export PATH="/opt/homebrew/bin:$PATH"
+export NVM_DIR="$HOME/.nvm"
+# Use `brew --prefix` to make it portable between Intel and Apple Silicon Macs
+[ -s "$(brew --prefix)/opt/nvm/nvm.sh" ] && \. "$(brew --prefix)/opt/nvm/nvm.sh" # This loads nvm
+[ -s "$(brew --prefix)/opt/nvm/etc/bash_completion.d/nvm" ] && \. "$(brew --prefix)/opt/nvm/etc/bash_completion.d/nvm" # This loads nvm bash_completion
 
 # Homebrew autocompletion
+# Oh My Zsh handles compinit, so we only need to add to FPATH.
 if type brew &>/dev/null; then
   FPATH="$(brew --prefix)/share/zsh/site-functions:$FPATH"
-  autoload -Uz compinit
-  compinit
 fi
 
 # 1Password Socket
@@ -64,10 +64,7 @@ export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agen
 # 1Password CLI
 eval "$(op completion zsh)"; compdef _op op # 1Password CLI completion
 
-# Rustup
-export PATH="/opt/homebrew/opt/rustup/bin:$PATH"
-
-# Load Rust binaries
-if [ -d "$HOME/.cargo/bin" ]; then
-  export PATH="$HOME/.cargo/bin:$PATH"
+# Initialize Starship prompt (should be one of the last things).
+if command -v starship >/dev/null 2>&1; then
+  eval "$(starship init zsh)"
 fi
