@@ -86,3 +86,6 @@ host-CH-5CD138M619-WSL:
   starship/starship.toml:
     type: link
     target: ~/.config/starship.toml
+  powershell/Microsoft.PowerShell_profile.ps1:
+    type: link
+    target: ~/OneDrive - Specialized Bicycle Components/Documents/PowerShell/Microsoft.PowerShell_profile.ps1

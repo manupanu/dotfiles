@@ -1,7 +1,7 @@
 [gpg]
 	format = ssh
 [gpg "ssh"]
-	program = C:/Users/manrig/AppData/Local/1Password/app/8/op-ssh-sign.exe
+	program = C:\\Users\\manrig\\AppData\\Local\\1Password\\app\\8\\op-ssh-sign.exe
 [commit]
 	gpgsign = true
 [user]
