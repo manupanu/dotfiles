@@ -28,7 +28,7 @@ ZSH_CUSTOM=$HOME/.config/zsh
 # Plugins to load (git is default).
 # Standard plugins: $ZSH/plugins/
 # Custom plugins: $ZSH_CUSTOM/plugins/
-plugins=(git zsh-syntax-highlighting zsh-autosuggestions direnv)
+plugins=(git ansible zsh-syntax-highlighting zsh-autosuggestions direnv)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -68,3 +68,13 @@ eval "$(op completion zsh)"; compdef _op op # 1Password CLI completion
 if command -v starship >/dev/null 2>&1; then
   eval "$(starship init zsh)"
 fi
+
+# Yazi: Custom command to handle current working directory
+# This function allows yazi to change the current working directory based on the output of the command
+function y() {
+	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+	yazi "$@" --cwd-file="$tmp"
+	IFS= read -r -d '' cwd < "$tmp"
+	[ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
+	rm -f -- "$tmp"
+}

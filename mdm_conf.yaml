@@ -21,24 +21,7 @@ common:
   #   args: ["--init"]
 
 linux:
-  # ZSH CONFIGURATION
-  zsh/.zshrc:
-    type: link
-    target: ~/.zshrc
-  zsh/aliases.zsh:
-    type: link
-    target: ~/.config/zsh/aliases.zsh
-
-  # ZSH PLUGINS
-  zsh/plugins/zsh-syntax-highlighting:
-    type: link
-    target: ~/.config/zsh/plugins/zsh-syntax-highlighting
-  zsh/plugins/zsh-autosuggestions:
-    type: link
-    target: ~/.config/zsh/plugins/zsh-autosuggestions
-  zsh/plugins/zsh-history-substring-search:
-    type: link
-    target: ~/.config/zsh/plugins/zsh-history-substring-search
+  # No Linux-specific dotfile actions defined yet.
 
 macos:
   # Git configuration
@@ -84,23 +67,22 @@ windows:
     type: copy
     target: ~/.config/starship.toml
 
-  # Komorebi WindowManager
-  komorebi/komorebi.json:
-    type: link
-    target: ~/.config/komorebi/komorebi.json
-  komorebi/komorebi.bar.json:
-    type: link
-    target: ~/.config/komorebi.bar.json
-  komorebi/applications.json:
-    type: link
-    target: ~/.config/komorebi/applications.json
-  komorebi/whkdrc:
-    type: link
-    target: ~/.config/whkdrc
-
 # Host-specific (by hostname)
 # Example: Only link this file on this specific host
 host-CH-5CD138M619:
   git/.gitconfig-windows-sbc:
     type: link
     target: ~/.gitconfig
+  powershell/Microsoft.PowerShell_profile.ps1:
+    type: link
+    target: ~/OneDrive - Specialized Bicycle Components/Documents/PowerShell/Microsoft.PowerShell_profile.ps1
+host-CH-5CD138M619-WSL:
+  git/.gitconfig-windows-sbc-wsl:
+    type: link
+    target: ~/.gitconfig
+  bash/.bashrc-wsl:
+    type: link
+    target: ~/.bashrc
+  starship/starship.toml:
+    type: link
+    target: ~/.config/starship.toml
