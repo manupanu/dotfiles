@@ -2,10 +2,12 @@
 # Contains custom aliases
 
 # Navigation
-alias ..='cd ..'
-alias ...='cd ../..'
-alias ....='cd ../../..'
-alias .....='cd ../../../..'
+alias ..='z ..'
+alias ...='z ../..'
+alias ....='z ../../..'
+alias .....='z ../../../..'
+
+alias cd='z' # Use zoxide for cd command
 
 # Listing files (using eza with icons)
 # Requires a Nerd Font installed and configured in the terminal
