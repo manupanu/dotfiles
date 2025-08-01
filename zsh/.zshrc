@@ -1,11 +1,11 @@
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
 
-# Editor
-export EDITOR='code'
+# Source environment variables
+source "$HOME/.dotfiles/zsh/env.zsh"
 
-# Path to your Oh My Zsh installation.
-export ZSH="$HOME/.oh-my-zsh"
+# Source Aliases
+source "$HOME/.dotfiles/zsh/aliases.zsh"
 
 # --- Oh My Zsh Settings --- #
 
@@ -34,21 +34,7 @@ source $ZSH/oh-my-zsh.sh
 
 # --- User Configuration --- #
 
-# Set up PATH
-# Order is important. Prepending ensures user-installed binaries are found first.
-export PATH="/opt/homebrew/bin:$PATH"
-export PATH="/opt/homebrew/opt/rustup/bin:$PATH"
-if [ -d "$HOME/.cargo/bin" ]; then
-  export PATH="$HOME/.cargo/bin:$PATH"
-fi
 
-# Source custom aliases if file exists
-if [ -f "$ZSH_CUSTOM/aliases.zsh" ]; then
-    source "$ZSH_CUSTOM/aliases.zsh"
-fi
-
-# Load Node Version Manager
-export NVM_DIR="$HOME/.nvm"
 # Use `brew --prefix` to make it portable between Intel and Apple Silicon Macs
 [ -s "$(brew --prefix)/opt/nvm/nvm.sh" ] && \. "$(brew --prefix)/opt/nvm/nvm.sh" # This loads nvm
 [ -s "$(brew --prefix)/opt/nvm/etc/bash_completion.d/nvm" ] && \. "$(brew --prefix)/opt/nvm/etc/bash_completion.d/nvm" # This loads nvm bash_completion
@@ -59,8 +45,7 @@ if type brew &>/dev/null; then
   FPATH="$(brew --prefix)/share/zsh/site-functions:$FPATH"
 fi
 
-# 1Password Socket
-export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock
+
 # 1Password CLI
 eval "$(op completion zsh)"; compdef _op op # 1Password CLI completion
 
