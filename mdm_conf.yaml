@@ -66,6 +66,9 @@ windows:
   starship/starship.toml:
     type: copy
     target: ~/.config/starship.toml
+  wezterm/wezterm-win.lua:
+    type: link
+    target: ~/.config/wezterm/wezterm.lua
 
 # Host-specific (by hostname)
 # Example: Only link this file on this specific host
