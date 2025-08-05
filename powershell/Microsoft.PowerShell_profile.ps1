@@ -146,3 +146,6 @@ admin/su - Run as administrator
 head/tail - View file contents
 "@ | Write-Host
 }
+
+# Zoxide Integration
+Invoke-Expression (& { (zoxide init powershell | Out-String) })
