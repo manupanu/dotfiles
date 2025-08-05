@@ -15,11 +15,14 @@ $golang\
 $php\
 [](fg:#212736 bg:#1d2230)\
 $docker_context\
-$memory_usage\
 [](fg:#1d2230 bg:#1a1c25)\
 $time\
 [ ](fg:#1a1c25)\
 \n$character"""
+
+command_timeout = 1000
+# Limit directory scanning duration for detectors (ms)
+scan_timeout = 30
 
 [directory]
 style = "fg:#e3e5e5 bg:#769ff0"
@@ -33,52 +36,96 @@ read_only = " 󰌾"
 "Downloads" = " "
 "Music" = " "
 "Pictures" = " "
+"Developer" = "󰲋 "
 
 [git_branch]
 symbol = ""
 style = "bg:#394260"
 format = '[[ $symbol $branch ](fg:#769ff0 bg:#394260)]($style)'
+# Trim extremely long branch names to avoid heavy formatting on huge prompts
+truncation_length = 32
+truncation_symbol = "…"
+only_attached = false
+
+[git_metrics]
+disabled = true
 
 [git_status]
 style = "bg:#394260"
+# Keep your original visual format
 format = '[[($all_status$ahead_behind )](fg:#769ff0 bg:#394260)]($style)'
+# Cheaper defaults to reduce git subprocess work
+conflicted = "!"
+stashed = ""
+untracked = "?"
+modified = "~"
+staged = "+"
+renamed = "»"
+deleted = "✘"
+ahead = "⇡"
+behind = "⇣"
+diverged = "⇕"
+# Avoid scanning submodules which can be very expensive
+ignore_submodules = true
 
 [python]
 symbol = ""
 style = "bg:#212736"
-format = '[[ $symbol ($version) (${virtualenv}) ](fg:#769ff0 bg:#212736)]($style)'
+# Show symbol and virtualenv name when active, but avoid python/pyenv execution
+format = '[[ $symbol (${virtualenv}) ](fg:#769ff0 bg:#212736)]($style)'
+# Only show Python module if these files or extensions are present
+detect_extensions = ["py"]
+detect_files = ["requirements.txt", "pyproject.toml", "Pipfile", "setup.py", "tox.ini"]
+# Starship shows Python when a virtualenv is active automatically; no custom detect_virtualenv key exists.
+# Performance knobs to avoid slow shims and version probes
+pyenv_version_name = false
+pyenv_prefix = ""
+python_binary = []  # do not execute python -V
+# Show the virtualenv name; skip version to keep prompt fast
+# (Starship uses $VIRTUAL_ENV/CONDA_DEFAULT_ENV without external calls)
+# NOTE: display_virtualenv is implicit via ${virtualenv} in format; remove any unsupported keys.
 
 [nodejs]
 symbol = ""
 style = "bg:#212736"
 format = '[[ $symbol ($version) ](fg:#769ff0 bg:#212736)]($style)'
+# Only show Node.js module if these files or extensions are present
+detect_extensions = ["js", "ts", "jsx", "tsx"]
+detect_files = ["package.json", "yarn.lock", "pnpm-lock.yaml", "bun.lockb"]
 
 [rust]
 symbol = ""
 style = "bg:#212736"
 format = '[[ $symbol ($version) ](fg:#769ff0 bg:#212736)]($style)'
+# Only show Rust module if these files or extensions are present
+detect_extensions = ["rs"]
+detect_files = ["Cargo.toml", "Cargo.lock"]
 
 [golang]
 symbol = ""
 style = "bg:#212736"
 format = '[[ $symbol ($version) ](fg:#769ff0 bg:#212736)]($style)'
+# Only show Go module if these files or extensions are present
+detect_extensions = ["go"]
+detect_files = ["go.mod", "go.sum", "Gopkg.toml", "Gopkg.lock"]
 
 [php]
 symbol = ""
 style = "bg:#212736"
 format = '[[ $symbol ($version) ](fg:#769ff0 bg:#212736)]($style)'
+# Only show PHP module if these files or extensions are present
+detect_extensions = ["php"]
+detect_files = ["composer.json", "composer.lock"]
 
 [docker_context]
 symbol = ""
 style = "bg:#1d2230"
 format = '[[ $symbol ($context) ](fg:#769ff0 bg:#1d2230)]($style)'
-disabled = false
+# Disable by default to avoid spawning docker commands on every prompt.
+# Re-enable for a session by: $env:STARSHIP_CONFIG_DOCKER=1 and toggling here if desired.
+disabled = true
 
-[memory_usage]
-symbol = "󰍛"
-style = "bg:#1d2230"
-format = '[[ $symbol ($ram_pct) ](fg:#769ff0 bg:#1d2230)]($style)'
-disabled = false
+
 
 [time]
 disabled = false

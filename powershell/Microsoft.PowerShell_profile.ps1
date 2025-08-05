@@ -1,22 +1,25 @@
-Invoke-Expression (& 'C:\Program Files\starship\bin\starship.exe' init powershell --print-full-init | Out-String)
+# Fast Starship init (cache once per session)
+$global:__starshipInit = $null
+if (-not $global:__starshipInit) {
+    $global:__starshipInit = & 'C:\Program Files\starship\bin\starship.exe' init powershell | Out-String
+}
+Invoke-Expression $global:__starshipInit
 
 
-# Lazy-load Terminal-Icons only when a command that needs it is run
+# Lazy-load Terminal-Icons without install attempts
+$script:__termIconsAttempted = $false
 function Ensure-TerminalIcons {
-    if (-not (Get-Module -Name Terminal-Icons)) {
-        if (-not (Get-Module -ListAvailable -Name Terminal-Icons)) {
-            try {
-                Install-Module -Name Terminal-Icons -Scope CurrentUser -Force -SkipPublisherCheck
-            } catch {
-                Write-Warning "Failed to install Terminal-Icons: $_"
-                return
-            }
-        }
-        try {
+    if (Get-Module -Name Terminal-Icons) { return }
+    if ($script:__termIconsAttempted) { return }
+    $script:__termIconsAttempted = $true
+    try {
+        if (Get-Module -ListAvailable -Name Terminal-Icons) {
             Import-Module -Name Terminal-Icons -ErrorAction Stop
-        } catch {
-            Write-Warning "Failed to import Terminal-Icons: $_"
+        } else {
+            Write-Verbose "Terminal-Icons not installed; skipping."
         }
+    } catch {
+        Write-Verbose "Failed to import Terminal-Icons: $_"
     }
 }
 
@@ -74,7 +77,13 @@ function lazyg {
 }
 
 # System and Network Utilities
-function Get-PubIP { (Invoke-WebRequest http://ifconfig.me/ip).Content }
+function Get-PubIP {
+    try {
+        (Invoke-WebRequest -Uri 'http://ifconfig.me/ip' -TimeoutSec 3 -UseBasicParsing).Content
+    } catch {
+        Write-Warning "Could not retrieve public IP."
+    }
+}
 function flushdns { Clear-DnsClientCache; Write-Host "DNS has been flushed" }
 function uptime {
     $bootTime = Get-WmiObject win32_operatingsystem | Select-Object lastbootuptime
@@ -88,7 +97,7 @@ function pgrep($name) { Get-Process $name }
 
 # File Search and Text Processing
 function ff($name) {
-    Get-ChildItem -recurse -filter "*${name}*" -ErrorAction SilentlyContinue | 
+    Get-ChildItem -recurse -filter "*${name}*" -ErrorAction SilentlyContinue |
     ForEach-Object { $_.FullName }
 }
 
@@ -103,10 +112,15 @@ function pst { Get-Clipboard }
 
 # Admin Elevation
 function admin {
+    $pwsh = "$env:ProgramFiles\PowerShell\7\pwsh.exe"
+    if (-not (Test-Path $pwsh)) {
+        Write-Error "pwsh.exe not found at $pwsh. Please check your installation."
+        return
+    }
     if ($args.Count -gt 0) {
-        Start-Process wt -Verb runAs -ArgumentList "pwsh.exe -NoExit -Command $($args -join ' ')"
+        Start-Process $pwsh -Verb runAs -ArgumentList "-NoExit -Command $($args -join ' ')"
     } else {
-        Start-Process wt -Verb runAs
+        Start-Process $pwsh -Verb runAs -ArgumentList "-NoExit"
     }
 }
 Set-Alias -Name su -Value admin
@@ -147,5 +161,29 @@ head/tail - View file contents
 "@ | Write-Host
 }
 
-# Zoxide Integration
-Invoke-Expression (& { (zoxide init powershell | Out-String) })
+# Zoxide Integration (lazy init)
+$script:__zoxideInited = $false
+function __Ensure-Zoxide {
+    if ($script:__zoxideInited) { return }
+    try {
+        Invoke-Expression (& { (zoxide init powershell | Out-String) })
+        $script:__zoxideInited = $true
+    } catch {
+        Write-Verbose "Failed to init zoxide: $_"
+    }
+}
+# Provide a safe wrapper for z that doesn't re-enter itself
+function z {
+    __Ensure-Zoxide
+    # After init, the real 'z' function/alias from zoxide is available; forward to it safely.
+    if (Get-Command -Name __zoxide_z -ErrorAction SilentlyContinue) {
+        & __zoxide_z @args
+        return
+    }
+    if (Get-Command -Name z -ErrorAction SilentlyContinue -CommandType Function,Alias,Application) {
+        & (Get-Command -Name z -ErrorAction SilentlyContinue) @args
+        return
+    }
+    Write-Warning "zoxide is not initialized."
+}
+Set-Alias zi z
