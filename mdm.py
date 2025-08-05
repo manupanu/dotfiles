@@ -32,6 +32,67 @@ except ImportError:
 # Configuration
 CONFIG_FILE = "mdm_conf.yaml"
 
+def load_config(script_dir: Path) -> dict:
+    config_path = script_dir / CONFIG_FILE
+    if not config_path.exists():
+        print(f"❌ Configuration file not found: {config_path}")
+        sys.exit(1)
+    try:
+        print(f"📖 Reading configuration from: {config_path}")
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = yaml.safe_load(f)
+    except yaml.YAMLError as e:
+        print(f"❌ Error parsing {CONFIG_FILE}: {e}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"❌ Error reading {CONFIG_FILE}: {e}")
+        sys.exit(1)
+    if not isinstance(config, dict):
+        print(f"❌ Invalid configuration format in {CONFIG_FILE}")
+        sys.exit(1)
+    return config
+
+def collect_links(config: dict, current_os: str) -> dict:
+    import socket
+    links_to_create = {}
+    common_links = config.get("common", {})
+    if isinstance(common_links, dict):
+        links_to_create.update(common_links)
+    else:
+        print("⚠️ Invalid 'common' section in config")
+    if current_os != "unknown":
+        os_links = config.get(current_os, {})
+        if isinstance(os_links, dict):
+            links_to_create.update(os_links)
+        else:
+            print(f"⚠️ Invalid '{current_os}' section in config")
+    else:
+        print("⚠️ Unknown OS - using only common links")
+    hostname = socket.gethostname()
+    host_section = f"host-{hostname}"
+    if host_section in config and isinstance(config[host_section], dict):
+        print(f"\U0001F4BB Detected host section: {host_section}")
+        links_to_create.update(config[host_section])
+    return links_to_create
+
+def dispatch_action(action_type, source_path, target_path, args, dry_run, force):
+    if action_type == "link":
+        create_symlink(source_path, target_path, dry_run, force)
+    elif action_type == "copy":
+        copy_item(source_path, target_path, dry_run, force)
+    elif action_type == "exec":
+        exec_script(source_path, args, dry_run)
+    else:
+        print(f"⚠️ Unknown action type '{action_type}' for {source_path}")
+
+def parse_entry(entry):
+    if isinstance(entry, str):
+        return "link", entry, None
+    elif isinstance(entry, dict):
+        return entry.get("type", "link"), entry.get("target"), entry.get("args")
+    else:
+        return None, None, None
+
 def get_os_type() -> str:
     """
     Determines the current operating system type.
@@ -227,13 +288,6 @@ def exec_script(source: Path, args=None, dry_run: bool = False) -> None:
         print(f"❌ Error executing script: {e}")
 
 def main(dry_run: bool = False, force: bool = False) -> None:
-    """
-    Main function that orchestrates the dotfile linking process.
-    
-    Args:
-        dry_run: If True, simulate actions without making changes.
-        force: If True, overwrite existing files/links.
-    """
     if dry_run:
         print("💨 Dry run mode - no changes will be made")
     if force:
@@ -241,27 +295,7 @@ def main(dry_run: bool = False, force: bool = False) -> None:
     print("🚀 Starting mdm (Manuels Dotfile Manager)")
 
     script_dir = Path(__file__).parent.resolve()
-    config_path = script_dir / CONFIG_FILE
-
-    if not config_path.exists():
-        print(f"❌ Configuration file not found: {config_path}")
-        sys.exit(1)
-
-    try:
-        print(f"📖 Reading configuration from: {config_path}")
-        with open(config_path, 'r', encoding='utf-8') as f:
-            config = yaml.safe_load(f)
-    except yaml.YAMLError as e:
-        print(f"❌ Error parsing {CONFIG_FILE}: {e}")
-        sys.exit(1)
-    except Exception as e:
-        print(f"❌ Error reading {CONFIG_FILE}: {e}")
-        sys.exit(1)
-
-    if not isinstance(config, dict):
-        print(f"❌ Invalid configuration format in {CONFIG_FILE}")
-        sys.exit(1)
-
+    config = load_config(script_dir)
     base_dir_name = config.get("base_dir", ".")
     source_base_dir = (script_dir / base_dir_name).resolve()
     print(f"📂 Source directory: {source_base_dir}")
@@ -269,30 +303,7 @@ def main(dry_run: bool = False, force: bool = False) -> None:
     current_os = get_os_type()
     print(f"💻 Detected OS: {current_os}")
 
-    links_to_create = {}
-    
-    common_links = config.get("common", {})
-    if isinstance(common_links, dict):
-        links_to_create.update(common_links)
-    else:
-        print("⚠️ Invalid 'common' section in config")
-
-    if current_os != "unknown":
-        os_links = config.get(current_os, {})
-        if isinstance(os_links, dict):
-            links_to_create.update(os_links)
-        else:
-            print(f"⚠️ Invalid '{current_os}' section in config")
-    else:
-        print("⚠️ Unknown OS - using only common links")
-
-    import socket
-    hostname = socket.gethostname()
-    host_section = f"host-{hostname}"
-    if host_section in config and isinstance(config[host_section], dict):
-        print(f"\U0001F4BB Detected host section: {host_section}")
-        links_to_create.update(config[host_section])
-
+    links_to_create = collect_links(config, current_os)
     if not links_to_create:
         print("🤷 No links defined for this configuration")
         return
@@ -300,31 +311,13 @@ def main(dry_run: bool = False, force: bool = False) -> None:
     print(f"\nProcessing {len(links_to_create)} links:")
     for idx, (source_rel, entry) in enumerate(links_to_create.items(), 1):
         print(f"\n[{idx}/{len(links_to_create)}] -----")
-        # Support both string (legacy) and dict (new)
-        if isinstance(entry, str):
-            action_type = "link"
-            target_str = entry
-            args = None
-        elif isinstance(entry, dict):
-            action_type = entry.get("type", "link")
-            target_str = entry.get("target")
-            args = entry.get("args")
-        else:
-            print(f"⚠️ Invalid link entry: {source_rel} -> {entry}")
-            continue
+        action_type, target_str, args = parse_entry(entry)
         if not isinstance(source_rel, str) or not isinstance(target_str, str):
             print(f"⚠️ Invalid link entry: {source_rel} -> {target_str}")
             continue
         source_path = source_base_dir / source_rel
         target_path = Path(target_str)
-        if action_type == "link":
-            create_symlink(source_path, target_path, dry_run, force)
-        elif action_type == "copy":
-            copy_item(source_path, target_path, dry_run, force)
-        elif action_type == "exec":
-            exec_script(source_path, args, dry_run)
-        else:
-            print(f"⚠️ Unknown action type '{action_type}' for {source_rel}")
+        dispatch_action(action_type, source_path, target_path, args, dry_run, force)
 
     print("\n🏁 Dotfiles linking process complete")
 

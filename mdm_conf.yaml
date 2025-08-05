@@ -51,7 +51,7 @@ macos:
   starship/starship.toml:
     type: link
     target: ~/.config/starship.toml
-  
+
   # Wezterm configuration
   wezterm/wezterm.lua:
     type: link
@@ -69,6 +69,9 @@ windows:
   wezterm/wezterm-win.lua:
     type: link
     target: ~/.config/wezterm/wezterm.lua
+  zed/zed-settings.json:
+    type: link
+    target: ~/AppData/Roaming/Zed/settings.json
 
 # Host-specific (by hostname)
 # Example: Only link this file on this specific host
