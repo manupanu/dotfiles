@@ -15,6 +15,7 @@ export PYENV_ROOT="$HOME/.pyenv"
 
 # Homebrew's bin directory
 export PATH="/opt/homebrew/bin:$PATH"
+export PATH="/opt/homebrew/sbin:$PATH"
 export PATH="/opt/homebrew/opt/rustup/bin:$PATH"
 
 # Cargo's bin directory for Rust tools
