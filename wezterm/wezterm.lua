@@ -21,6 +21,10 @@ config.use_fancy_tab_bar = false
 config.hide_tab_bar_if_only_one_tab = true
 config.tab_bar_at_bottom = true
 
+--- MacOS specific settings
+config.send_composed_key_when_left_alt_is_pressed = true
+config.send_composed_key_when_right_alt_is_pressed = true
+
 -- Cursor
 config.default_cursor_style = 'BlinkingBlock'
 
@@ -31,6 +35,8 @@ config.window_padding = {
   top = 10,
   bottom = 10,
 }
+
+
 
 -- Finally, return the configuration to wezterm:
 return config
