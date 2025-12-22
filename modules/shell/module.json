@@ -2,10 +2,14 @@
   "name": "shell",
   "packages": {
     "darwin": [
-      "zsh"
+      "zsh",
+      "starship",
+      "alacritty"
     ],
     "linux": [
-      "zsh"
+      "zsh",
+      "starship",
+      "alacritty"
     ],
     "win32": [
       "Microsoft.PowerShell",
