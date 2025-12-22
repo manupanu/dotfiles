@@ -142,8 +142,8 @@ def ensure_backup(dst):
         shutil.move(str(dst), str(backup))
 
 def setup_symlink(src, dst):
-    dst = Path(dst).expanduser().resolve()
-    src = Path(src).resolve()
+    dst = Path(dst).expanduser().absolute()
+    src = Path(src).absolute()
     
     if not src.exists():
         err = f"Source missing: {src}"
@@ -153,7 +153,7 @@ def setup_symlink(src, dst):
 
     if dst.exists() or dst.is_symlink():
         try:
-            if dst.is_symlink() and Path(os.readlink(dst)).resolve() == src:
+            if dst.is_symlink() and Path(os.readlink(dst)).resolve() == src.resolve():
                 print(f"Checked: {dst} already linked.")
                 return
         except OSError:
@@ -180,8 +180,8 @@ def setup_symlink(src, dst):
         SUMMARY["errors"].append(err)
 
 def setup_copy(src, dst):
-    dst = Path(dst).expanduser().resolve()
-    src = Path(src).resolve()
+    dst = Path(dst).expanduser().absolute()
+    src = Path(src).absolute()
     
     if not src.exists():
         err = f"Source missing: {src}"
@@ -216,6 +216,19 @@ def main():
     parser.add_argument("-d", "--dry-run", action="store_true", help="Show what would be done without making changes")
     parser.add_argument("--no-backup", action="store_true", help="Skip creating .bak files when overwriting")
     ARGS = parser.parse_args()
+
+    if get_platform() == "win32":
+        import winreg
+        try:
+            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock")
+            value, _ = winreg.QueryValueEx(key, "AllowDevelopmentSettings")
+            if value != 1:
+                raise Exception("Developer Mode not enabled")
+        except Exception:
+            print("Error: Windows Developer Mode is DISABLED.")
+            print("Symlinks require Developer Mode to be created without Administrator privileges.")
+            print("Please enable it in Settings or run the bootstrap.ps1 script as Administrator.")
+            sys.exit(1)
 
     hostname = socket.gethostname()
     print(f"Hostname: {hostname}")
