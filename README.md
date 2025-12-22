@@ -1,39 +1,30 @@
-# Dotfiles Manager
+# Dotfiles
 
-A simple, modular, and cross-platform dotfiles manager written in Python. It supports Windows, macOS, and Linux with native package manager integration and hostname-based configuration overrides.
+My personal dotfiles, managed with a custom Python utility. This repository contains my configurations for various tools and shells, organized into modular components.
 
 ## Features
 
-- **Cross-Platform**: Works on Windows (`winget`), macOS (`brew`), and Linux (`apt`).
-- **One-Command Bootstrap**: Easy setup scripts for Unix and Windows.
-- **Dry Run Support**: Preview changes with `--dry-run` or `-d`.
-- **Modular Design**: Every configuration is a self-contained folder in the `modules/` directory.
-- **Performance Optimized**: 
-  - Batched package installation across all modules.
-  - Efficient package existence checks for all platforms.
-- **Intelligent Linking**: 
-  - Automatic backup of existing files (appends `.bak`).
-  - Creates parent directories automatically.
-  - Supports platform and hostname-specific overrides with fallbacks.
-- **Conditional Loading**: Filter entire modules based on platform or hostname.
+- **Modular Configuration**: Each tool (git, shell, etc.) is a self-contained module.
+- **Cross-Platform**: Supports Windows (`winget`), macOS (`brew`), and Linux (`apt`).
+- **Automated Setup**: One-liner installation and bootstrap scripts.
+- **Intelligent Linking**: Automatic symlinking with platform and hostname-specific overrides.
+- **Safety First**: Automatic backups of existing configurations (unless `--no-backup` is used).
 
 ## Project Structure
 
 ```text
 .dotfiles/
-├── main.py            # Core engine
+├── main.py            # Management utility
 ├── bootstrap.sh       # Mac/Linux setup script
 ├── bootstrap.ps1      # Windows setup script
 └── modules/           # Configuration modules
-    └── git/
-        ├── module.json    # Module definition
-        ├── .gitconfig     # Shared config
-        └── .gitconfig-work
+    ├── git/           # Git configuration
+    └── shell/         # Shell (PowerShell/Zsh) configuration
 ```
 
-## Usage
+## Installation
 
-### 1. Quick Install (One-Liner)
+### Quick Install (One-Liner)
 
 **macOS / Linux:**
 ```bash
@@ -45,8 +36,8 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/manupanu/dotfiles/main/i
 powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/manupanu/dotfiles/main/install.ps1 | iex"
 ```
 
-### 2. Manual Bootstrap
-If you have already cloned the repository, run the script appropriate for your system:
+### Manual Setup
+If you have already cloned the repository, run the bootstrap script for your system:
 
 **Windows:**
 ```powershell
@@ -59,9 +50,11 @@ If you have already cloned the repository, run the script appropriate for your s
 ./bootstrap.sh
 ```
 
-### 3. Advanced Usage
-The manager supports command-line arguments:
+## Management Utility
 
+The dotfiles are managed by a Python script (`main.py`) that handles package installation and file linking.
+
+### Advanced Usage
 ```bash
 # Preview changes without applying them
 python main.py --dry-run
@@ -70,7 +63,7 @@ python main.py --dry-run
 python main.py --no-backup
 ```
 
-### 2. Adding a Module
+### Adding a Module
 Create a folder in `modules/` with a `module.json` file.
 
 #### Example `module.json`
@@ -78,7 +71,6 @@ Create a folder in `modules/` with a `module.json` file.
 {
   "name": "example",
   "platforms": ["win32", "darwin"],
-  "hostnames": "WORK-LAPTOP, HOME-PC",
   "packages": {
     "darwin": ["htop"],
     "win32": ["HTOP.HTOP"]
@@ -112,7 +104,7 @@ Create a folder in `modules/` with a `module.json` file.
 - `links`: Files linked via symlinks (best for most configs).
 - `copy`: Files copied directly (best for apps that don't follow symlinks).
 
-Both support `all`, `platforms`, and `hostnames` (with `"default"` support) just like the package installer.
+Both support `all`, `platforms`, and `hostnames` (with `"default"` support).
 
 #### Example `module.json` with advanced filtering
 ```json
