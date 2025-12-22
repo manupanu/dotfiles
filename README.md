@@ -6,11 +6,15 @@ A simple, modular, and cross-platform dotfiles manager written in Python. It sup
 
 - **Cross-Platform**: Works on Windows (`winget`), macOS (`brew`), and Linux (`apt`).
 - **One-Command Bootstrap**: Easy setup scripts for Unix and Windows.
+- **Dry Run Support**: Preview changes with `--dry-run` or `-d`.
 - **Modular Design**: Every configuration is a self-contained folder in the `modules/` directory.
+- **Performance Optimized**: 
+  - Batched package installation across all modules.
+  - Efficient package existence checks for all platforms.
 - **Intelligent Linking**: 
   - Automatic backup of existing files (appends `.bak`).
   - Creates parent directories automatically.
-  - Supports hostname-specific overrides with fallbacks.
+  - Supports platform and hostname-specific overrides with fallbacks.
 - **Conditional Loading**: Filter entire modules based on platform or hostname.
 
 ## Project Structure
@@ -41,6 +45,14 @@ Run the script appropriate for your system:
 **macOS / Linux:**
 ```bash
 ./bootstrap.sh
+```
+
+### 2. Advanced Usage
+The manager supports command-line arguments:
+
+```bash
+# Preview changes without applying them
+python main.py --dry-run
 ```
 
 ### 2. Adding a Module
@@ -85,15 +97,31 @@ Create a folder in `modules/` with a `module.json` file.
 - `links`: Files linked via symlinks (best for most configs).
 - `copy`: Files copied directly (best for apps that don't follow symlinks).
 
-Both support `all` and `hostnames` (with `"default"` support) just like the package installer.
+Both support `all`, `platforms`, and `hostnames` (with `"default"` support) just like the package installer.
 
-#### Example `module.json` with copy
+#### Example `module.json` with advanced filtering
 ```json
 {
-  "name": "sensitive-app",
-  "copy": {
+  "name": "advanced",
+  "links": {
     "all": {
-      "config.ini": "~/.app/config.ini"
+      "shared": "~/.shared"
+    },
+    "platforms": {
+      "darwin, linux": {
+        "bashrc": "~/.bashrc"
+      },
+      "win32": {
+        "powershell_profile.ps1": "~/Documents/PowerShell/Microsoft.PowerShell_profile.ps1"
+      }
+    },
+    "hostnames": {
+      "WORK-LAPTOP": {
+        "gitconfig-work": "~/.gitconfig-local"
+      },
+      "default": {
+        "gitconfig-personal": "~/.gitconfig-local"
+      }
     }
   }
 }

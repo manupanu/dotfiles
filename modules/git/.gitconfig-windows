@@ -1,0 +1,12 @@
+[gpg]
+	format = ssh
+[gpg "ssh"]
+	program = C:\\Users\\Manuel\\AppData\\Local\\Microsoft\\WindowsApps\\op-ssh-sign.exe
+[commit]
+	gpgsign = true
+[user]
+	signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIClBF3x9IGzrqKGNUWa0O60eYndkvg+tcQFjR1qMYRMP
+	name = Manuel Anrig
+	email = me@manuelanrig.ch
+[core]
+	sshCommand = C:/Windows/System32/OpenSSH/ssh.exe
