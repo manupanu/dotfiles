@@ -1,9 +1,16 @@
 {
   "name": "git",
   "packages": {
-    "darwin": ["git"],
-    "linux": ["git"],
-    "win32": ["Git.Git"]
+    "darwin": [
+      "git"
+    ],
+    "linux": [
+      "git"
+    ],
+    "win32": [
+      "Git.Git",
+      "9NZWS5X28P0J"
+    ]
   },
   "links": {
     "platforms": {

@@ -1,9 +1,17 @@
 {
   "name": "shell",
   "packages": {
-    "darwin": ["zsh"],
-    "linux": ["zsh"],
-    "win32": ["Microsoft.PowerShell", "Microsoft.WindowsTerminal", "Starship.Starship"]
+    "darwin": [
+      "zsh"
+    ],
+    "linux": [
+      "zsh"
+    ],
+    "win32": [
+      "Microsoft.PowerShell",
+      "Microsoft.WindowsTerminal",
+      "Starship.Starship"
+    ]
   },
   "links": {
     "platforms": {
@@ -16,7 +24,7 @@
   },
   "copy": {
     "all": {
-     "starship.toml": "~/.config/starship.toml"
+      "starship.toml": "~/.config/starship.toml"
     }
   }
 }
