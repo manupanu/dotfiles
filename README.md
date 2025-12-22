@@ -65,6 +65,9 @@ The manager supports command-line arguments:
 ```bash
 # Preview changes without applying them
 python main.py --dry-run
+
+# Skip creating .bak files when overwriting existing files
+python main.py --no-backup
 ```
 
 ### 2. Adding a Module

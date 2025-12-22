@@ -119,10 +119,21 @@ def install_packages(pkgs):
 def ensure_backup(dst):
     if ARGS and ARGS.dry_run:
         if dst.exists() or dst.is_symlink():
-            print(f"[DRY-RUN] -> Would backup {dst}")
+            if ARGS.no_backup:
+                print(f"[DRY-RUN] -> Would remove {dst} (no backup)")
+            else:
+                print(f"[DRY-RUN] -> Would backup {dst}")
         return
 
     if dst.exists() or dst.is_symlink():
+        if ARGS and ARGS.no_backup:
+            print(f"Removing {dst} (no backup)")
+            if dst.is_dir() and not dst.is_symlink():
+                shutil.rmtree(dst)
+            else:
+                os.remove(dst)
+            return
+
         backup = dst.parent / (dst.name + ".bak")
         print(f"Backing up {dst} to {backup}")
         if backup.exists():
@@ -203,6 +214,7 @@ def main():
     global ARGS
     parser = argparse.ArgumentParser(description="Dotfiles Manager")
     parser.add_argument("-d", "--dry-run", action="store_true", help="Show what would be done without making changes")
+    parser.add_argument("--no-backup", action="store_true", help="Skip creating .bak files when overwriting")
     ARGS = parser.parse_args()
 
     hostname = socket.gethostname()

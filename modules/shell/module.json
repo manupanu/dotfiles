@@ -1,0 +1,22 @@
+{
+  "name": "shell",
+  "packages": {
+    "darwin": ["zsh"],
+    "linux": ["zsh"],
+    "win32": ["Microsoft.PowerShell", "Microsoft.WindowsTerminal", "Starship.Starship"]
+  },
+  "links": {
+    "platforms": {
+      "win32": {
+        "Microsoft.PowerShell_profile.ps1": "~/Documents/PowerShell/Microsoft.PowerShell_profile.ps1",
+        "WindowsTerminal_settings.json": "~/AppData/Local/Packages/Microsoft.WindowsTerminal_8wekyb3d8bbwe/LocalState/settings.json",
+        "aliases.ps1": "~/Documents/PowerShell/aliases.ps1"
+      }
+    }
+  },
+  "copy": {
+    "all": {
+     "starship.toml": "~/.config/starship.toml"
+    }
+  }
+}
