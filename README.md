@@ -33,8 +33,20 @@ A simple, modular, and cross-platform dotfiles manager written in Python. It sup
 
 ## Usage
 
-### 1. Bootstrap
-Run the script appropriate for your system:
+### 1. Quick Install (One-Liner)
+
+**macOS / Linux:**
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/manupanu/dotfiles/main/install.sh)"
+```
+
+**Windows:**
+```powershell
+powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/manupanu/dotfiles/main/install.ps1 | iex"
+```
+
+### 2. Manual Bootstrap
+If you have already cloned the repository, run the script appropriate for your system:
 
 **Windows:**
 ```powershell
@@ -47,7 +59,7 @@ Run the script appropriate for your system:
 ./bootstrap.sh
 ```
 
-### 2. Advanced Usage
+### 3. Advanced Usage
 The manager supports command-line arguments:
 
 ```bash
