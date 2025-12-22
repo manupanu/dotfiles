@@ -1,0 +1,21 @@
+{
+  "name": "git",
+  "packages": {
+    "darwin": ["git"],
+    "linux": ["git"],
+    "win32": ["Git.Git"]
+  },
+  "links": {
+    "all": {
+      ".gitconfig": "~/.gitconfig"
+    },
+    "hostnames": {
+      "Manuel-DESKTOP": {
+        ".gitconfig-personal": "~/.gitconfig-local"
+      },
+      "WORK-LAPTOP": {
+        ".gitconfig-work": "~/.gitconfig-local"
+      }
+    }
+  }
+}
