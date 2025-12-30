@@ -1,3 +1,6 @@
+"""
+Dotfiles Manager - A script to manage dotfiles across different platforms.
+"""
 import os
 import sys
 import json
@@ -12,15 +15,19 @@ SUMMARY = {"modules": 0, "links": 0, "copied": 0, "packages": 0, "errors": []}
 ARGS = None
 
 def get_platform():
-    if sys.platform == "win32": return "win32"
-    if sys.platform == "darwin": return "darwin"
+    """Return the current platform string."""
+    if sys.platform == "win32":
+        return "win32"
+    if sys.platform == "darwin":
+        return "darwin"
     return "linux"
 
 def run_cmd(cmd, sudo=False):
+    """Run a shell command."""
     if ARGS and ARGS.dry_run:
         print(f"[DRY-RUN] -> Would run: {' '.join(cmd)}")
         return True
-    
+
     if sudo and get_platform() != "win32":
         cmd = ["sudo"] + cmd
     print(f"-> Running: {' '.join(cmd)}")
@@ -33,29 +40,49 @@ def run_cmd(cmd, sudo=False):
         return False
 
 def is_installed(pkg):
+    """Check if a package is installed using the platform's package manager."""
     plat = get_platform()
     if plat == "win32":
         try:
-            result = subprocess.run(["winget", "list", "--exact", pkg], capture_output=True, text=True)
+            result = subprocess.run(["winget", "list", "--exact", pkg],
+                                    capture_output=True, text=True, check=False)
             return result.returncode == 0
-        except Exception: return False
+        except (subprocess.SubprocessError, FileNotFoundError):
+            return False
     elif plat == "darwin":
         try:
             # brew list returns 0 if installed, non-zero if not
-            result = subprocess.run(["brew", "list", pkg], capture_output=True)
+            result = subprocess.run(["brew", "list", pkg], capture_output=True, check=False)
             return result.returncode == 0
-        except Exception: return False
+        except (subprocess.SubprocessError, FileNotFoundError):
+            return False
     elif plat == "linux":
         try:
-            result = subprocess.run(["dpkg", "-s", pkg], capture_output=True)
+            result = subprocess.run(["dpkg", "-s", pkg], capture_output=True, check=False)
             return result.returncode == 0
-        except Exception: return False
+        except (subprocess.SubprocessError, FileNotFoundError):
+            return False
     return False
 
+def _match_config(config_section, current_value):
+    """Helper to match platform or hostname in config."""
+    matched_vals = []
+    matched = False
+    for key, val in config_section.items():
+        if key == "default":
+            continue
+        if current_value in [k.strip() for k in key.split(",")]:
+            matched = True
+            matched_vals.append(val)
+    if not matched and "default" in config_section:
+        matched_vals.append(config_section["default"])
+    return matched_vals
+
 def resolve_contextual_config(config, hostname):
+    """Resolve configuration based on platform and hostname."""
     plat = get_platform()
     resolved = []
-    
+
     if not isinstance(config, dict):
         return resolved
 
@@ -68,43 +95,30 @@ def resolve_contextual_config(config, hostname):
 
     if "all" in config:
         resolved.append(config["all"])
-        
+
     if "platforms" in config:
-        plat_cfg = config["platforms"]
-        matched = False
-        for plat_key, plat_val in plat_cfg.items():
-            if plat_key == "default": continue
-            if plat in [p.strip() for p in plat_key.split(",")]:
-                matched = True
-                resolved.append(plat_val)
-        if not matched and "default" in plat_cfg:
-            resolved.append(plat_cfg["default"])
-            
+        resolved.extend(_match_config(config["platforms"], plat))
+
     if "hostnames" in config:
-        host_cfg = config["hostnames"]
-        matched = False
-        for host_key, host_val in host_cfg.items():
-            if host_key == "default": continue
-            if hostname in [h.strip() for h in host_key.split(",")]:
-                matched = True
-                resolved.append(host_val)
-        if not matched and "default" in host_cfg:
-            resolved.append(host_cfg["default"])
-            
+        resolved.extend(_match_config(config["hostnames"], hostname))
+
     return resolved
 
 def install_packages(pkgs):
-    if not pkgs: return
-    
+    """Install a list of packages using the platform's package manager."""
+    if not pkgs:
+        return
+
     to_install = []
     for pkg in pkgs:
         if is_installed(pkg):
             print(f"Package {pkg} already installed.")
         else:
             to_install.append(pkg)
-            
-    if not to_install: return
-    
+
+    if not to_install:
+        return
+
     plat = get_platform()
     if plat == "darwin":
         run_cmd(["brew", "install"] + to_install)
@@ -113,10 +127,11 @@ def install_packages(pkgs):
     elif plat == "win32":
         for pkg in to_install:
             run_cmd(["winget", "install", "--exact", pkg])
-    
+
     SUMMARY["packages"] += len(to_install)
 
 def ensure_backup(dst):
+    """Create a backup of the destination if it exists."""
     if ARGS and ARGS.dry_run:
         if dst.exists() or dst.is_symlink():
             if ARGS.no_backup:
@@ -137,14 +152,17 @@ def ensure_backup(dst):
         backup = dst.parent / (dst.name + ".bak")
         print(f"Backing up {dst} to {backup}")
         if backup.exists():
-            if backup.is_dir(): shutil.rmtree(backup)
-            else: os.remove(backup)
+            if backup.is_dir():
+                shutil.rmtree(backup)
+            else:
+                os.remove(backup)
         shutil.move(str(dst), str(backup))
 
 def setup_symlink(src, dst):
+    """Create a symlink from src to dst."""
     dst = Path(dst).expanduser().absolute()
     src = Path(src).absolute()
-    
+
     if not src.exists():
         err = f"Source missing: {src}"
         print(err)
@@ -158,7 +176,7 @@ def setup_symlink(src, dst):
                 return
         except OSError:
             pass
-        
+
         ensure_backup(dst)
 
     if ARGS and ARGS.dry_run:
@@ -180,9 +198,10 @@ def setup_symlink(src, dst):
         SUMMARY["errors"].append(err)
 
 def setup_copy(src, dst):
+    """Copy src to dst."""
     dst = Path(dst).expanduser().absolute()
     src = Path(src).absolute()
-    
+
     if not src.exists():
         err = f"Source missing: {src}"
         print(err)
@@ -205,53 +224,43 @@ def setup_copy(src, dst):
     SUMMARY["copied"] += 1
 
 def process_links(links_dict, module_dir, hostname, action_fn):
+    """Process a dictionary of links/copies."""
     for item in resolve_contextual_config(links_dict, hostname):
         if isinstance(item, dict):
             for src, dst in item.items():
                 action_fn(module_dir / src, dst)
 
-def main():
-    global ARGS
-    parser = argparse.ArgumentParser(description="Dotfiles Manager")
-    parser.add_argument("-d", "--dry-run", action="store_true", help="Show what would be done without making changes")
-    parser.add_argument("--no-backup", action="store_true", help="Skip creating .bak files when overwriting")
-    ARGS = parser.parse_args()
-
-    if get_platform() == "win32":
-        import winreg
-        try:
-            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock")
-            value, _ = winreg.QueryValueEx(key, "AllowDevelopmentSettings")
-            if value != 1:
-                raise Exception("Developer Mode not enabled")
-        except Exception:
-            print("Error: Windows Developer Mode is DISABLED.")
-            print("Symlinks require Developer Mode to be created without Administrator privileges.")
-            print("Please enable it in Settings or run the bootstrap.ps1 script as Administrator.")
-            sys.exit(1)
-
-    hostname = socket.gethostname()
-    print(f"Hostname: {hostname}")
-    root = Path(__file__).parent.resolve()
-    modules_dir = root / "modules"
-    
-    if not modules_dir.exists():
-        print("No modules directory found.")
+def check_windows_dev_mode():
+    """Check if Windows Developer Mode is enabled."""
+    if get_platform() != "win32":
         return
+    try:
+        import winreg  # pylint: disable=import-outside-toplevel
+        key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
+                             r"SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock")
+        value, _ = winreg.QueryValueEx(key, "AllowDevelopmentSettings")
+        if value != 1:
+            raise RuntimeError("Developer Mode not enabled")
+    except (ImportError, OSError, RuntimeError):
+        print("Error: Windows Developer Mode is DISABLED.")
+        print("Symlinks require Developer Mode to be created without Administrator privileges.")
+        print("Please enable it in Settings or run the bootstrap.ps1 script as Administrator.")
+        sys.exit(1)
 
+def collect_modules(modules_dir, hostname):
+    """Collect modules and packages to process."""
     all_packages = []
     modules_to_process = []
 
-    # First pass: collect modules and packages
     for module_path in modules_dir.glob("**/module.json"):
-        with open(module_path) as f:
+        with open(module_path, encoding="utf-8") as f:
             config = json.load(f)
-        
+
         name = config.get('name', 'unknown')
         if "platforms" in config and get_platform() not in config["platforms"]:
             print(f"Skipping Module: {name} (Platform mismatch)")
             continue
-            
+
         if "hostnames" in config:
             allowed_hosts = config["hostnames"]
             if isinstance(allowed_hosts, str):
@@ -261,29 +270,27 @@ def main():
                 continue
 
         modules_to_process.append((module_path, config))
-        
+
         if "packages" in config:
             for item in resolve_contextual_config(config["packages"], hostname):
                 if isinstance(item, list):
                     all_packages.extend(item)
 
-    # Install all packages at once
-    if all_packages:
-        print("\n--- Installing Packages ---")
-        install_packages(list(dict.fromkeys(all_packages))) # unique packages
+    return modules_to_process, list(dict.fromkeys(all_packages))
 
-    # Second pass: process links and copies
-    for module_path, config in modules_to_process:
-        print(f"\n--- Processing Module: {config.get('name', 'unknown')} ---")
-        SUMMARY["modules"] += 1
-        
-        if "links" in config:
-            process_links(config["links"], module_path.parent, hostname, setup_symlink)
-        
-        if "copy" in config:
-            process_links(config["copy"], module_path.parent, hostname, setup_copy)
+def process_module(module_path, config, hostname):
+    """Process a single module."""
+    print(f"\n--- Processing Module: {config.get('name', 'unknown')} ---")
+    SUMMARY["modules"] += 1
 
-    # Summary report
+    if "links" in config:
+        process_links(config["links"], module_path.parent, hostname, setup_symlink)
+
+    if "copy" in config:
+        process_links(config["copy"], module_path.parent, hostname, setup_copy)
+
+def print_summary():
+    """Print the final summary report."""
     print("\n" + "="*30)
     print("      SUMMARY REPORT")
     print("="*30)
@@ -291,7 +298,7 @@ def main():
     print(f"Packages installed: {SUMMARY['packages']}")
     print(f"Links created:      {SUMMARY['links']}")
     print(f"Files copied:       {SUMMARY['copied']}")
-    
+
     if SUMMARY["errors"]:
         print("\nERRORS:")
         for err in SUMMARY["errors"]:
@@ -299,6 +306,41 @@ def main():
     else:
         print("\nNo errors encountered!")
     print("="*30)
+
+def main():
+    """Main entry point."""
+    global ARGS
+    parser = argparse.ArgumentParser(description="Dotfiles Manager")
+    parser.add_argument("-d", "--dry-run", action="store_true",
+                        help="Show what would be done without making changes")
+    parser.add_argument("--no-backup", action="store_true",
+                        help="Skip creating .bak files when overwriting")
+    ARGS = parser.parse_args()
+
+    check_windows_dev_mode()
+
+    hostname = socket.gethostname()
+    print(f"Hostname: {hostname}")
+    root = Path(__file__).parent.resolve()
+    modules_dir = root / "modules"
+
+    if not modules_dir.exists():
+        print("No modules directory found.")
+        return
+
+    modules_to_process, all_packages = collect_modules(modules_dir, hostname)
+
+    # Install all packages at once
+    if all_packages:
+        print("\n--- Installing Packages ---")
+        install_packages(all_packages)
+
+    # Second pass: process links and copies
+    for module_path, config in modules_to_process:
+        process_module(module_path, config, hostname)
+
+    # Summary report
+    print_summary()
 
 if __name__ == "__main__":
     main()

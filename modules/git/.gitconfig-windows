@@ -1,7 +1,7 @@
 [gpg]
 	format = ssh
 [gpg "ssh"]
-	program = C:\\Users\\Manuel\\AppData\\Local\\Microsoft\\WindowsApps\\op-ssh-sign.exe
+	program = ~/AppData/Local/Microsoft/WindowsApps/op-ssh-sign.exe
 [commit]
 	gpgsign = true
 [user]
@@ -10,3 +10,5 @@
 	email = me@manuelanrig.ch
 [core]
 	sshCommand = C:/Windows/System32/OpenSSH/ssh.exe
+[safe]
+	directory = C:/Users/manrig/.dotfiles
