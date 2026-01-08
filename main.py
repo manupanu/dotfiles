@@ -123,7 +123,7 @@ def install_packages(pkgs):
     if plat == "darwin":
         run_cmd(["brew", "install"] + to_install)
     elif plat == "linux":
-        run_cmd(["apt-get", "install", "-y"] + to_install, sudo=True)
+        run_cmd(["apt", "install", "-y"] + to_install, sudo=True)
     elif plat == "win32":
         for pkg in to_install:
             run_cmd(["winget", "install", "--exact", pkg])

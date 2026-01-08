@@ -1,0 +1,21 @@
+{
+  "name": "code",
+  "packages": {
+    "darwin": [
+      "zed"
+    ],
+    "linux": [
+      "zed"
+    ],
+    "win32": [
+      "ZedIndustries.Zed"
+    ]
+  },
+  "links": {
+    "platforms": {
+      "win32": {
+        "zed-settings.json": "~/AppData/Roaming/Zed/settings.json"
+      }
+    }
+  }
+}
