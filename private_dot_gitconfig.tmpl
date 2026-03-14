@@ -1,0 +1,15 @@
+[gpg]
+    format = ssh
+[gpg "ssh"]
+{{- if eq .chezmoi.os "windows" }}
+    program = "C:/Users/{{ .chezmoi.username }}/AppData/Local/Microsoft/1Password/app/8/op-ssh-sign.exe"
+{{- else if eq .chezmoi.os "darwin" }}
+    program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
+{{- end }}
+[commit]
+    gpgsign = true
+[user]
+    signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIClBF3x9IGzrqKGNUWa0O60eYndkvg+tcQFjR1qMYRMP
+    name = Manuel Anrig
+    email = me@manuelanrig.ch
+    username = manupanu
