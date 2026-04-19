@@ -5,6 +5,10 @@ HISTFILE=${ZDOTDIR:-$HOME}/.zsh_history
 HISTSIZE=10000
 SAVEHIST=10000
 
+if [[ -d /opt/homebrew/share/zsh/site-functions ]]; then
+  fpath=(/opt/homebrew/share/zsh/site-functions $fpath)
+fi
+
 setopt AUTO_CD
 setopt APPEND_HISTORY
 setopt HIST_IGNORE_DUPS
@@ -15,6 +19,20 @@ setopt EXTENDED_HISTORY
 setopt INTERACTIVE_COMMENTS
 setopt AUTO_PUSHD
 setopt PUSHD_IGNORE_DUPS
+setopt COMPLETE_IN_WORD
+setopt ALWAYS_TO_END
+
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}' 'r:|[._-]=** r:|=**'
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+zstyle ':completion:*' squeeze-slashes true
+zstyle ':completion:*' special-dirs true
+zstyle ':completion:*' completer _extensions _complete _approximate
+zstyle ':completion:*:approximate:*' max-errors 1 numeric
+zstyle ':completion:*' rehash true
+zstyle ':completion:*:descriptions' format '[%d]'
+zstyle ':completion:*:warnings' format 'no matches for: %d'
+zstyle ':completion:*' group-name ''
 
 if [[ ! -f $HOME/.antidote/antidote.zsh ]]; then
   echo "antidote is missing at $HOME/.antidote. Run 'chezmoi apply' to install it." >&2
@@ -28,6 +46,9 @@ else
 
   source "${zsh_plugins}.zsh"
 fi
+
+bindkey '^[[Z' reverse-menu-complete
+bindkey '^I' menu-complete
 
 autoload -Uz promptinit && promptinit
 prompt pure
