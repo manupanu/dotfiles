@@ -2,8 +2,8 @@
 eval "$(/opt/homebrew/bin/brew shellenv zsh)"
 
 # Editor
-export EDITOR="zed --wait"
-export VISUAL="zed --wait"
+export EDITOR="code --wait"
+export VISUAL="code --wait"
 
 # LM Studio
 export PATH="$PATH:/Users/manuel/.lmstudio/bin"
