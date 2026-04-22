@@ -37,14 +37,19 @@ zstyle ':completion:*' group-name ''
 if [[ ! -f $HOME/.antidote/antidote.zsh ]]; then
   echo "antidote is missing at $HOME/.antidote. Run 'chezmoi apply' to install it." >&2
 else
-  if [[ ! ${zsh_plugins}.zsh -nt ${zsh_plugins_src} ]]; then
+  plugins_loaded=0
+  if [[ -f ${zsh_plugins}.zsh && ${zsh_plugins}.zsh -nt ${zsh_plugins_src} ]]; then
+    source "${zsh_plugins}.zsh" 2>/dev/null && plugins_loaded=1
+  fi
+
+  if (( ! plugins_loaded )); then
     (
       source "$HOME/.antidote/antidote.zsh"
       antidote bundle <"${zsh_plugins_src}" >|"${zsh_plugins}.zsh"
     )
-  fi
 
-  source "${zsh_plugins}.zsh"
+    source "${zsh_plugins}.zsh"
+  fi
 fi
 
 bindkey '^[[Z' reverse-menu-complete
@@ -54,7 +59,7 @@ autoload -Uz promptinit && promptinit
 prompt pure
 
 # Aliases
-source ~/.zsh/aliases
+source ~/.zsh/aliases.zsh
 
 # zoxide
 eval "$(zoxide init zsh)"

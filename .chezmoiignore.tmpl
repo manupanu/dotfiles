@@ -1,0 +1,10 @@
+README.md
+CHEZMOI_FEATURES.md
+
+{{- if eq .chezmoi.os "windows" }}
+.config/zed
+{{- else if eq .chezmoi.os "darwin" }}
+AppData
+{{- else if eq .chezmoi.os "linux" }}
+AppData
+{{- end }}

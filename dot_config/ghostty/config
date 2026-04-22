@@ -1,0 +1,7 @@
+theme = TokyoNight Night
+background-opacity = 0.75
+window-padding-x = 12
+window-padding-y = 12
+font-size = 14
+font-family = JetBrainsMono Nerd Font
+macos-glass-regular = true
