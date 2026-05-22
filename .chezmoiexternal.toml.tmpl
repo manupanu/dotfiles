@@ -1,12 +1,10 @@
-README.md
-CHEZMOI_FEATURES.md
+
 
 {{- if eq .chezmoi.os "windows" }}
-.config/zed
 {{- else if eq .chezmoi.os "darwin" }}
-AppData
+[".antidote"]
+    type = "git-repo"
+    url = "https://github.com/getantidote/antidote"
+    refreshPeriod = "168h"
 {{- else if eq .chezmoi.os "linux" }}
-AppData
-.zsh
-.zshenv
 {{- end }}

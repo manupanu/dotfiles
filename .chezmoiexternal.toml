@@ -1,4 +1,0 @@
-[".antidote"]
-    type = "git-repo"
-    url = "https://github.com/getantidote/antidote"
-    refreshPeriod = "168h"
