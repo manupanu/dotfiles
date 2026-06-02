@@ -11,14 +11,8 @@ echo "Installing zoxide..."
 
 case "$(uname -s)" in
   Darwin)
-    if command -v brew >/dev/null 2>&1; then
-      brew install zoxide
-    elif command -v cargo >/dev/null 2>&1; then
-      cargo install zoxide --locked
-    else
-      echo "Error: Please install Homebrew or Cargo on macOS"
-      exit 1
-    fi
+    echo "ℹ zoxide is managed via Homebrew Bundle (Brewfile) on macOS — skipping standalone install"
+    exit 0
     ;;
   Linux)
     if command -v apt-get >/dev/null 2>&1 && [ -f /etc/debian_version ]; then

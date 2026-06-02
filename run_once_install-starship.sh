@@ -11,13 +11,8 @@ echo "Installing Starship..."
 
 case "$(uname -s)" in
   Darwin)
-    if command -v brew >/dev/null 2>&1; then
-      brew install starship
-    elif command -v cargo >/dev/null 2>&1; then
-      cargo install starship --locked
-    else
-      curl -sS https://starship.rs/install.sh | sh -s -- --yes
-    fi
+    echo "ℹ Starship is managed via Homebrew Bundle (Brewfile) on macOS — skipping standalone install"
+    exit 0
     ;;
   Linux)
     if command -v apt-get >/dev/null 2>&1 && [ -f /etc/debian_version ]; then

@@ -12,6 +12,8 @@ brew "git"
 brew "zsh"
 
 # Prompt & smart directory jumping (configured in zshrc)
+# On macOS these are installed here; on Linux/Windows they fall back to
+# run_once_install-starship.sh / run_once_install-zoxide.sh
 brew "starship"
 brew "zoxide"
 
