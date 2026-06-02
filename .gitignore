@@ -1,0 +1,26 @@
+# OS artifacts
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Editor files
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# Zsh artifacts (regenerated)
+*.zcompdump*
+.zsh_history
+
+# Chezmoi internal state files (not config)
+.chezmoistate*
+.chezmoiroot

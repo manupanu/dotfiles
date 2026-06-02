@@ -1,0 +1,64 @@
+// Zed settings
+//
+// For information on how to configure Zed, see the Zed
+// documentation: https://zed.dev/docs/configuring-zed
+//
+// To see all of Zed's default settings without changing your
+// custom settings, run `zed: open default settings` from the
+// command palette (cmd-shift-p / ctrl-shift-p)
+{
+  "agent_servers": {
+    "opencode": {
+      "type": "registry"
+    },
+    "codex-acp": {
+      "type": "registry"
+    }
+  },
+  "icon_theme": "Catppuccin Mocha",
+  "agent": {
+    "tool_permissions": {
+      "tools": {
+        "terminal": {
+          "always_allow": [
+            {
+              "pattern": "^python3\\b"
+            }
+          ]
+        }
+      }
+    },
+    "default_profile": "write",
+    "default_model": {
+      "effort": "high",
+      "provider": "copilot_chat",
+      "model": "gpt-5.4-mini",
+      "enable_thinking": false
+    },
+    "favorite_models": [
+      {
+        "provider": "lmstudio",
+        "model": "gemma-4-26b-a4b-it-mlx",
+        "enable_thinking": false
+      }
+    ],
+    "model_parameters": []
+  },
+  "edit_predictions": {
+    "provider": "copilot"
+  },
+  "telemetry": {
+    "diagnostics": false,
+    "metrics": false
+  },
+  "session": {
+    "trust_all_worktrees": true
+  },
+  "ui_font_size": 16,
+  "buffer_font_size": 15,
+  "theme": {
+    "mode": "system",
+    "light": "One Light",
+    "dark": "Tokyo Night",
+  },
+}

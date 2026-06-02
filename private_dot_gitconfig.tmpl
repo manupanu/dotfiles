@@ -11,9 +11,9 @@
 [commit]
     gpgsign = true
 [user]
-    signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIClBF3x9IGzrqKGNUWa0O60eYndkvg+tcQFjR1qMYRMP
-    name = Manuel Anrig
-    email = me@manuelanrig.ch
-    username = manupanu
+    signingkey = {{ .personal.signingkey }}
+    name = {{ .personal.name }}
+    email = {{ .personal.email }}
+    username = {{ .personal.username }}
 [init]
     defaultBranch = main
