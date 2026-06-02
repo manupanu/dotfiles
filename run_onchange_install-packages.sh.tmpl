@@ -1,0 +1,20 @@
+#!/bin/bash
+# macOS package installation via Homebrew Bundle
+# Re-runs automatically when the Brewfile changes.
+# Brewfile hash: {{ include "Brewfile" | sha256sum }}
+set -e
+
+if [[ "$(uname -s)" != "Darwin" ]]; then
+  echo "Homebrew Bundle is macOS-only — skipping"
+  exit 0
+fi
+
+if ! command -v brew >/dev/null 2>&1; then
+  echo "✗ Homebrew not found — skipping bundle install"
+  exit 0
+fi
+
+echo "Running brew bundle..."
+brew bundle
+
+echo "✓ Brewfile packages up to date"
