@@ -1,0 +1,42 @@
+HISTFILE=${ZDOTDIR:-$HOME}/.zsh_history
+HISTSIZE=10000
+SAVEHIST=10000
+
+# Platform-specific setup
+{{- if eq .chezmoi.os "darwin" }}
+if [[ -d /opt/homebrew/share/zsh/site-functions ]]; then
+  fpath=(/opt/homebrew/share/zsh/site-functions $fpath)
+fi
+{{- end }}
+
+# ohmyzsh configuration
+export ZSH="$HOME/.oh-my-zsh"
+ZSH_THEME="robbyrussell"
+plugins=(
+  git
+  zsh-autosuggestions
+  zsh-syntax-highlighting
+  zoxide
+)
+
+setopt AUTO_CD
+setopt APPEND_HISTORY
+setopt HIST_IGNORE_DUPS
+setopt HIST_IGNORE_SPACE
+setopt HIST_VERIFY
+setopt SHARE_HISTORY
+setopt EXTENDED_HISTORY
+setopt INTERACTIVE_COMMENTS
+setopt AUTO_PUSHD
+setopt PUSHD_IGNORE_DUPS
+setopt COMPLETE_IN_WORD
+setopt ALWAYS_TO_END
+
+# Source ohmyzsh
+source $ZSH/oh-my-zsh.sh
+
+# User aliases
+source ~/.zsh/aliases.zsh
+
+# zoxide initialization
+eval "$(zoxide init zsh)"

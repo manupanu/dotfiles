@@ -1,0 +1,21 @@
+# Homebrew (macOS only)
+{{- if eq .chezmoi.os "darwin" }}
+eval "$(/opt/homebrew/bin/brew shellenv zsh)"
+{{- end }}
+
+# Editor
+export EDITOR="code --wait"
+export VISUAL="code --wait"
+
+# Environment variables
+export PIPENV_VENV_IN_PROJECT=1
+
+# set PATH so it includes user's private bin if it exists
+if [ -d "$HOME/bin" ]; then
+  PATH="$HOME/bin:$PATH"
+fi
+
+# set PATH so it includes user's private bin if it exists
+if [ -d "$HOME/.local/bin" ]; then
+  PATH="$HOME/.local/bin:$PATH"
+fi
