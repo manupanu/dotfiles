@@ -89,7 +89,8 @@ This is one of the main reasons `chezmoi` can replace a pile of ad hoc bootstrap
 
 This repo already uses that feature for shell tooling:
 
-- `oh-my-zsh`
+- `antidote`
+- `starship`
 - `zsh-autosuggestions`
 - `zsh-syntax-highlighting`
 

@@ -1,0 +1,9 @@
+# .zsh_plugins.txt - comments begin with "#"
+# Antidote plugin list in user/repo format
+
+# popular fish-like plugins
+mattmc3/zfunctions
+zsh-users/zsh-autosuggestions
+zdharma-continuum/fast-syntax-highlighting kind:defer
+zsh-users/zsh-history-substring-search
+
