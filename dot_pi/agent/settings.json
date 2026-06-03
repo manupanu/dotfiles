@@ -5,8 +5,10 @@
   "packages": [
     "npm:@juicesharp/rpiv-ask-user-question",
     "npm:@juicesharp/rpiv-web-tools",
+    "npm:@juicesharp/rpiv-todo",
     "npm:pi-ask-user",
-    "npm:pi-simplify"
+    "npm:pi-simplify",
+    "npm:context-mode"
   ],
   "theme": "catppuccin-mocha",
   "lastChangelogVersion": "0.78.0",
