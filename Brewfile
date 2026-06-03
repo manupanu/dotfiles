@@ -6,33 +6,53 @@
 # You can also run `brew bundle` anytime from anywhere.
 
 # --- Formulae (CLI tools) ---
-
-# Shell essentials (already referenced in dotfiles)
 brew "git"
 brew "zsh"
 
-# Prompt & smart directory jumping (configured in zshrc)
-# On macOS these are installed here; on Linux/Windows they fall back to
-# run_once_install-starship.sh / run_once_install-zoxide.sh
 brew "starship"
 brew "zoxide"
 
-# Node version manager (path referenced in zshrc)
 brew "nvm"
+brew "tailscale"
+brew "gh"
+brew "tmux"
+brew "neovim"
+brew "fzf"
+brew "tree-sitter"
+brew "ripgrep"
+brew "fd"
+brew "bat"
+brew "lazygit"
+brew "lazydocker"
+
+brew "python@3.12"
+brew "python@3.13"
+brew "python@3.14"
+brew "pyenv"
+brew "pipenv"
+
+brew "go"
+brew "rustup"
+
+brew "hugo"
+
+
+
+
 
 # --- Casks (GUI apps) ---
-
-# Password manager & SSH signing (referenced in gitconfig)
 cask "1password"
 cask "1password-cli"
 
-# Terminal (config in dot_config/ghostty/)
 cask "ghostty"
+cask "visual-studio-code"
+cask "raycast"
+cask "spotify"
+cask "obsidian"
+cask "mac-mouse-fix"
+cask "tailscale-app"
 
-# Editor (config in dot_config/zed/)
-cask "zed"
+
 
 # --- Fonts ---
-
-# Nerd Font used by Ghostty config
 cask "font-jetbrains-mono-nerd-font"
