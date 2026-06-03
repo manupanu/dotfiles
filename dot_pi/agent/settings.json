@@ -8,5 +8,7 @@
     "npm:pi-ask-user",
     "npm:pi-simplify"
   ],
-  "theme": "dark"
+  "theme": "catppuccin-mocha",
+  "lastChangelogVersion": "0.78.0",
+  "quietStartup": true
 }
