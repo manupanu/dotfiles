@@ -22,3 +22,9 @@ echo "Installing Pi..."
 npm install -g @earendil-works/pi-coding-agent
 
 echo "✓ Pi installed: $(pi --version 2>/dev/null || echo 'done')"
+echo ""
+echo "Pi is configured but requires authentication."
+echo "Run 'pi login' to set up API keys and OAuth tokens."
+echo ""
+echo "  pi login               # interactive login"
+echo "  pi login <provider>    # login to a specific provider"
