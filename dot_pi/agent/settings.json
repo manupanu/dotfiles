@@ -1,0 +1,12 @@
+{
+  "defaultProvider": "opencode-go",
+  "defaultModel": "glm-5.1",
+  "defaultThinkingLevel": "medium",
+  "packages": [
+    "npm:@juicesharp/rpiv-ask-user-question",
+    "npm:@juicesharp/rpiv-web-tools",
+    "npm:pi-ask-user",
+    "npm:pi-simplify"
+  ],
+  "theme": "dark"
+}

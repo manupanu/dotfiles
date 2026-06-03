@@ -1,5 +1,11 @@
 README.md
 
+# Pi state files (not config)
+.pi/agent/auth.json
+.pi/agent/npm/
+.pi/agent/sessions/
+.pi/agent/bin/
+
 {{- if eq .chezmoi.os "windows" }}
 .config/zed
 {{- else if eq .chezmoi.os "darwin" }}
