@@ -44,7 +44,6 @@ fi
 export NVM_DIR="$HOME/.nvm"
 [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"
 [ -s "/opt/homebrew/opt/nvm/bash_completion" ] && \. "/opt/homebrew/opt/nvm/bash_completion"
-nvm use --lts --silent 2>/dev/null || true
 {{- else if eq .chezmoi.os "linux" }}
 if [[ -s "/usr/share/nvm/init-nvm.sh" ]]; then
   . "/usr/share/nvm/init-nvm.sh"
@@ -54,5 +53,4 @@ else
   [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
   [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
 fi
-nvm use --lts --silent 2>/dev/null || true
 {{- end }}
