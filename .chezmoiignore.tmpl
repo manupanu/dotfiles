@@ -1,15 +1,40 @@
 README.md
 
-# Pi state files (not config)
+# Pi state (not config)
 .pi/agent/auth.json
 .pi/agent/npm/
 .pi/agent/sessions/
 .pi/agent/bin/
+.pi/agent/settings.json
+
+# Shared (never deployed)
+_functions.sh
+.chezmoitemplates/
+.chezmoidata.toml
+.chezmoiexternal.toml
+.chezmoiversion
 
 {{- if eq .chezmoi.os "windows" }}
+# ── Windows: no zsh, ghostty, homebrew ─────────────────────────────────
+dot_zsh/
+dot_zshenv.tmpl
+dot_config/ghostty/
+Brewfile
+private_dot_gitconfig.tmpl
+scripts/macos/
+scripts/unix/
+{{- else }}
+# ── Unix: no windows scripts ──────────────────────────────────────────
+scripts/windows/
+
+{{- if eq .chezmoi.os "darwin" }}
+AppData
 .config/zed
-{{- else if eq .chezmoi.os "darwin" }}
-AppData
 {{- else if eq .chezmoi.os "linux" }}
+Brewfile
 AppData
+.config/zed
+scripts/macos/
+{{- end }}
+
 {{- end }}

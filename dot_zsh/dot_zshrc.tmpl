@@ -4,27 +4,23 @@ SAVEHIST=2000
 
 # Platform-specific setup
 {{- if eq .chezmoi.os "darwin" }}
-if [[ -d /opt/homebrew/share/zsh/site-functions ]]; then
-  fpath=(/opt/homebrew/share/zsh/site-functions $fpath)
-fi
+fpath=(/opt/homebrew/share/zsh/site-functions $fpath)
+{{- else if eq .chezmoi.os "linux" }}
+fpath=(/usr/share/bash-completion/completions $fpath)
 {{- end }}
 
-# Antidote plugin manager
+# Antidote
 export ANTIDOTE_HOME="${ANTIDOTE_HOME:-$HOME/.antidote}"
 if [[ ! -d "$ANTIDOTE_HOME" ]]; then
   git clone https://github.com/mattmc3/antidote.git "$ANTIDOTE_HOME"
 fi
 source "$ANTIDOTE_HOME/antidote.zsh"
-
-# Antidote plugin file
 ZSH_PLUGIN_FILE="$HOME/.zsh/.zsh_plugins.txt"
 ZSH_PLUGIN_OUTPUT="$HOME/.zsh/.zsh_plugins.zsh"
 if [[ -s "$ZSH_PLUGIN_FILE" && (! -f "$ZSH_PLUGIN_OUTPUT" || "$ZSH_PLUGIN_FILE" -nt "$ZSH_PLUGIN_OUTPUT") ]]; then
   antidote bundle < "$ZSH_PLUGIN_FILE" > "$ZSH_PLUGIN_OUTPUT"
 fi
-if [[ -f "$ZSH_PLUGIN_OUTPUT" ]]; then
-  source "$ZSH_PLUGIN_OUTPUT"
-fi
+[[ -f "$ZSH_PLUGIN_OUTPUT" ]] && source "$ZSH_PLUGIN_OUTPUT"
 
 # Prompt
 if command -v starship >/dev/null 2>&1; then
@@ -32,27 +28,31 @@ if command -v starship >/dev/null 2>&1; then
   eval "$(starship init zsh)"
 fi
 
-setopt AUTO_CD
-setopt APPEND_HISTORY
-setopt HIST_IGNORE_ALL_DUPS
-setopt HIST_IGNORE_DUPS
-setopt HIST_IGNORE_SPACE
-setopt HIST_VERIFY
-setopt SHARE_HISTORY
-setopt EXTENDED_HISTORY
-setopt INTERACTIVE_COMMENTS
-setopt AUTO_PUSHD
-setopt PUSHD_IGNORE_DUPS
-setopt COMPLETE_IN_WORD
-setopt ALWAYS_TO_END
+setopt AUTO_CD APPEND_HISTORY HIST_IGNORE_ALL_DUPS HIST_IGNORE_DUPS
+setopt HIST_IGNORE_SPACE HIST_VERIFY SHARE_HISTORY EXTENDED_HISTORY
+setopt INTERACTIVE_COMMENTS AUTO_PUSHD PUSHD_IGNORE_DUPS COMPLETE_IN_WORD ALWAYS_TO_END
 
-# User aliases
 source ~/.zsh/aliases.zsh
 
-# zoxide initialization
-eval "$(zoxide init zsh)"
+# zoxide
+if command -v zoxide >/dev/null 2>&1; then
+  eval "$(zoxide init zsh)"
+fi
 
-# NVM
+# ── NVM ──────────────────────────────────────────────────────────────
+{{- if eq .chezmoi.os "darwin" }}
 export NVM_DIR="$HOME/.nvm"
-[ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
-#[ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion 
+[ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"
+[ -s "/opt/homebrew/opt/nvm/bash_completion" ] && \. "/opt/homebrew/opt/nvm/bash_completion"
+nvm use --lts --silent 2>/dev/null || true
+{{- else if eq .chezmoi.os "linux" }}
+if [[ -s "/usr/share/nvm/init-nvm.sh" ]]; then
+  . "/usr/share/nvm/init-nvm.sh"
+else
+  export NVM_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/nvm"
+  [[ ! -d "$NVM_DIR" ]] && export NVM_DIR="$HOME/.nvm"
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+fi
+nvm use --lts --silent 2>/dev/null || true
+{{- end }}

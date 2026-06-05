@@ -1,25 +1,27 @@
+# ls
 alias ll='ls -la'
 alias la='ls -A'
 alias l='ls -CF'
 
+# Directory jumping (zoxide)
 alias ..='z ..'
 alias ...='z ../..'
 alias ....='z ../../..'
-# Note: Use 'z' directly for smart directory jumping (zoxide)
-# alias cd='z'  # Disabled: breaks cd - and scripts
-
 alias c='clear'
 
+# Grep
 alias grep='grep --color=auto'
 alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'
 
-
+# Human-readable sizes
 alias df='df -h'
 alias du='du -h'
+{{- if eq .chezmoi.os "linux" }}
 alias free='free -h'
+{{- end }}
 
-
+# Git
 alias g='git'
 alias gc='git commit'
 alias gp='git push'

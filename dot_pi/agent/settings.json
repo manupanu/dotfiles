@@ -11,6 +11,6 @@
     "npm:context-mode"
   ],
   "theme": "catppuccin-mocha",
-  "lastChangelogVersion": "0.78.0",
+  "lastChangelogVersion": "0.78.1",
   "quietStartup": true
 }

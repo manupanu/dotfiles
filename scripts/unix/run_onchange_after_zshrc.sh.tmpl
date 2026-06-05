@@ -1,0 +1,5 @@
+#!/bin/sh
+set -e
+# Clear zsh completion cache after .zshrc changes
+rm -f "$HOME/.zsh/.zcompdump"*
+echo "Cleared zsh completion cache"
