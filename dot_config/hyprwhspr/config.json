@@ -1,0 +1,11 @@
+{
+  "$schema": "https://raw.githubusercontent.com/goodroot/hyprwhspr/main/share/config.schema.json",
+  "use_hypr_bindings": true,
+  "transcription_backend": "rest-api",
+  "rest_endpoint_url": "https://api.groq.com/openai/v1/audio/transcriptions",
+  "rest_api_provider": "groq",
+  "rest_body": {
+    "model": "whisper-large-v3"
+  },
+  "audio_ducking": true
+}
