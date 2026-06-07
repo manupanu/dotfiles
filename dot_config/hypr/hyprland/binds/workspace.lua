@@ -1,0 +1,27 @@
+return function(vars)
+    -- Workspaces 1-10
+    hl.bind(vars.mainMod .. " + 1", hl.dsp.focus({ workspace = 1 }))
+    hl.bind(vars.mainMod .. " + 2", hl.dsp.focus({ workspace = 2 }))
+    hl.bind(vars.mainMod .. " + 3", hl.dsp.focus({ workspace = 3 }))
+    hl.bind(vars.mainMod .. " + 4", hl.dsp.focus({ workspace = 4 }))
+    hl.bind(vars.mainMod .. " + 5", hl.dsp.focus({ workspace = 5 }))
+    hl.bind(vars.mainMod .. " + 6", hl.dsp.focus({ workspace = 6 }))
+    hl.bind(vars.mainMod .. " + 7", hl.dsp.focus({ workspace = 7 }))
+    hl.bind(vars.mainMod .. " + 8", hl.dsp.focus({ workspace = 8 }))
+    hl.bind(vars.mainMod .. " + 9", hl.dsp.focus({ workspace = 9 }))
+    hl.bind(vars.mainMod .. " + 0", hl.dsp.focus({ workspace = 10 }))
+
+    hl.bind(vars.mainMod .. " + SHIFT + 1", hl.dsp.window.move({ workspace = 1 }))
+    hl.bind(vars.mainMod .. " + SHIFT + 2", hl.dsp.window.move({ workspace = 2 }))
+    hl.bind(vars.mainMod .. " + SHIFT + 3", hl.dsp.window.move({ workspace = 3 }))
+    hl.bind(vars.mainMod .. " + SHIFT + 4", hl.dsp.window.move({ workspace = 4 }))
+    hl.bind(vars.mainMod .. " + SHIFT + 5", hl.dsp.window.move({ workspace = 5 }))
+    hl.bind(vars.mainMod .. " + SHIFT + 6", hl.dsp.window.move({ workspace = 6 }))
+    hl.bind(vars.mainMod .. " + SHIFT + 7", hl.dsp.window.move({ workspace = 7 }))
+    hl.bind(vars.mainMod .. " + SHIFT + 8", hl.dsp.window.move({ workspace = 8 }))
+    hl.bind(vars.mainMod .. " + SHIFT + 9", hl.dsp.window.move({ workspace = 9 }))
+    hl.bind(vars.mainMod .. " + SHIFT + 0", hl.dsp.window.move({ workspace = 10 }))
+
+    hl.bind(vars.mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
+    hl.bind(vars.mainMod .. " + mouse_up", hl.dsp.focus({ workspace = "e-1" }))
+end
