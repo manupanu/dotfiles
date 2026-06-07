@@ -5,13 +5,19 @@
         "source": "~/.config/fastfetch/logo.txt",
         "type": "file-raw",
         "padding": {
-            "top": 1,
+            "top": 0,
             "right": 4,
             "left": 0
         }
     },
     "display": {
-        "separator": " "
+        "separator": " ",
+        "color": {
+            "keys": "38;2;137;180;250",
+            "title": "38;2;203;166;247",
+            "output": "38;2;205;214;244",
+            "separator": "38;2;108;112;134"
+        }
     },
     "modules": [
         {
@@ -19,61 +25,60 @@
             "type": "custom"
         },
         {
-            "key": "│ {#34} user    {#keys}│",
+            "key": "│  user    │",
             "type": "title",
             "format": "{user-name}"
         },
         {
-            "key": "│ {#34}󰇅 hname   {#keys}│",
+            "key": "│ 󰇅 hname   │",
             "type": "title",
             "format": "{host-name}"
         },
         {
             "type": "command",
-            "key": "│ {#34}󱦟 os age  {#keys}│",
-            "keyColor": "magenta",
-            "text": "printf \"\\e[0m%s days\\e[0m\" \"$(( ($(date +%s) - $(stat -c %W /)) / 86400 ))\""
+            "key": "│ 󱦟 os age  │",
+            "text": "printf \"%s days\" \"$(( ($(date +%s) - $(stat -c %W /)) / 86400 ))\""
         },
         {
-            "key": "│ {#34}󰅐 uptime  {#keys}│",
+            "key": "│ 󰅐 uptime  │",
             "type": "uptime"
         },
         {
-            "key": "│ {#34}{icon} distro  {#keys}│",
+            "key": "│ {icon} distro  │",
             "type": "os"
         },
         {
-            "key": "│ {#34} kernel  {#keys}│",
+            "key": "│  kernel  │",
             "type": "kernel"
         },
         {
-            "key": "│ {#34} wm      {#keys}│",
+            "key": "│  wm      │",
             "type": "wm"
         },
         {
-            "key": "│ {#34}󰇄 desktop {#keys}│",
+            "key": "│ 󰇄 desktop │",
             "type": "de"
         },
         {
-            "key": "│ {#34} term    {#keys}│",
+            "key": "│  term    │",
             "type": "terminal"
         },
         {
-            "key": "│ {#34} shell   {#keys}│",
+            "key": "│  shell   │",
             "type": "shell"
         },
         {
-            "key": "│ {#34}󰍛 cpu     {#keys}│",
+            "key": "│ 󰍛 cpu     │",
             "type": "cpu",
             "showPeCoreCount": true
         },
         {
-            "key": "│ {#34}󰉉 disk    {#keys}│",
+            "key": "│ 󰉉 disk    │",
             "type": "disk",
             "folders": "/"
         },
         {
-            "key": "│ {#34} memory  {#keys}│",
+            "key": "│  memory  │",
             "type": "memory"
         },
         {
@@ -81,7 +86,7 @@
             "type": "custom"
         },
         {
-            "key": "│ {#34} colors  {#keys}│",
+            "key": "│  colors  │",
             "type": "colors",
             "symbol": "circle"
         },
