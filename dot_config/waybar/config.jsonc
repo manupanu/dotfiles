@@ -51,7 +51,14 @@
   "hyprland/window": {
     "format": "{}",
     "max-length": 70,
-    "separate-outputs": true
+    "separate-outputs": true,
+    "rewrite": {
+      "(.*) — Mozilla Firefox": "$1",
+      "(.*) — Google Chrome": "$1",
+      "(.*) — Discord": "$1",
+      "(.*) — Code": "$1",
+      "(.*) — Visual Studio Code": "$1"
+    }
   },
 
   "clock": {
@@ -70,19 +77,24 @@
   },
 
   "network": {
-    "format-wifi": "󰤨 {essid}",
+    "format-wifi": "󰤨 {essid}  {signalStrength}%",
     "format-ethernet": "󰈀 wired",
     "format-disconnected": "󰤭 offline",
-    "tooltip-format": "{ifname}: {ipaddr}/{cidr}"
+    "tooltip-format": "{ifname}: {ipaddr}/{cidr}",
+    "tooltip-format-wifi": "{ifname} — {essid}\n{ipaddr}/{cidr}  •  {signalStrength}% ({signaldBm} dBm)\n{bandwidthDownBits} ↓  {bandwidthUpBits} ↑",
+    "tooltip-format-ethernet": "{ifname}\n{ipaddr}/{cidr}\n{bandwidthDownBits} ↓  {bandwidthUpBits} ↑"
   },
 
   "cpu": {
     "format": " {usage}%",
-    "tooltip": false
+    "interval": 5,
+    "tooltip-format": "CPU {usage}%\n{avg_frequency:0.2f} GHz avg  •  load {load}"
   },
 
   "memory": {
-    "format": " {}%"
+    "format": " {percentage}%",
+    "interval": 10,
+    "tooltip-format": "RAM {used:0.1f}G / {total:0.1f}G ({percentage}%)\nSwap: {swapUsed:0.1f}G / {swapTotal:0.1f}G ({swapPercentage}%)"
   },
 
   "tray": {
