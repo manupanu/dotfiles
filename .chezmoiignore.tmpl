@@ -21,11 +21,11 @@ dot_zshenv.tmpl
 dot_config/ghostty/
 Brewfile
 private_dot_gitconfig.tmpl
-scripts/macos/
-scripts/unix/
+.chezmoiscripts/*macos*
+.chezmoiscripts/*unix*
 {{- else }}
 # ── Unix: no windows scripts ──────────────────────────────────────────
-scripts/windows/
+.chezmoiscripts/*windows*
 
 {{- if eq .chezmoi.os "darwin" }}
 AppData
@@ -34,7 +34,7 @@ AppData
 Brewfile
 AppData
 .config/zed
-scripts/macos/
+.chezmoiscripts/*macos*
 {{- end }}
 
 {{- end }}

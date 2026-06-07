@@ -5,13 +5,13 @@ Managed with [chezmoi](https://www.chezmoi.io).
 ## Structure
 
 ```
-scripts/
-├── macos/        # macOS-only (Homebrew, Brewfile)
-├── unix/         # cross-platform Unix (starship, zoxide, pi, zsh)
-└── windows/     # Windows-only (scoop, PowerShell)
+.chezmoiscripts/
+├── macos/        # macOS-only chezmoi scripts (Homebrew, Brewfile)
+├── unix/         # cross-platform Unix chezmoi scripts (starship, zoxide, pi, zsh)
+└── windows/     # Windows-only chezmoi scripts (scoop, PowerShell)
 ```
 
-`.chezmoiignore.tmpl` excludes each platform's scripts on other OSes.
+`.chezmoiignore.tmpl` excludes each platform's `.chezmoiscripts/` on other OSes. `.chezmoiscripts/` is used so scripts execute without creating `~/scripts` in the home directory.
 `_functions.sh` is shared helpers (included via `{{ include }}`, never deployed).
 
 ## Setup on a new machine
