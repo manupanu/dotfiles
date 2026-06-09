@@ -8,8 +8,9 @@ eval "$(/usr/local/bin/brew shellenv zsh)"
 {{- end }}
 
 # ── Editor & env ──────────────────────────────────────────────────────
-export EDITOR="code --wait"
-export VISUAL="code --wait"
+# Open current Pi working directory + the temp prompt file when pressing Ctrl+G in Pi.
+export EDITOR="code --reuse-window --wait ."
+export VISUAL="code --reuse-window --wait ."
 export PIPENV_VENV_IN_PROJECT=1
 
 # ── PATH ──────────────────────────────────────────────────────────────

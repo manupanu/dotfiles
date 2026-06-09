@@ -6,6 +6,9 @@ return function(vars)
     hl.bind(vars.mainMod .. " + D", hl.dsp.exec_cmd(vars.menu))
     hl.bind(vars.mainMod .. " + SHIFT + B", hl.dsp.exec_cmd("pkill waybar; waybar -c ~/.config/waybar/config.jsonc -s ~/.config/waybar/style.css"))
     hl.bind(vars.mainMod .. " + SHIFT + N", hl.dsp.exec_cmd("swaync-client -t -sw"))
+    hl.bind("CTRL + ALT + Delete", hl.dsp.exec_cmd(vars.powermenu), {
+        description = "Power menu",
+    })
 
     -- hyprwhspr speech-to-text
     -- Press once to start recording, press again to stop. Also visible/clickable in Waybar.
