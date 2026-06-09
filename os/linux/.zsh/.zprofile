@@ -1,6 +1,6 @@
 # Editor & env
-export EDITOR="code --reuse-window --wait ."
-export VISUAL="code --reuse-window --wait ."
+export EDITOR="code --reuse-window --wait"
+export VISUAL="code --reuse-window --wait"
 export PIPENV_VENV_IN_PROJECT=1
 
 # PATH
