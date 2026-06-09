@@ -3,11 +3,7 @@ HISTSIZE=2000
 SAVEHIST=2000
 
 # Platform-specific setup
-{{- if eq .chezmoi.os "darwin" }}
-fpath=(/opt/homebrew/share/zsh/site-functions $fpath)
-{{- else if eq .chezmoi.os "linux" }}
 fpath=(/usr/share/bash-completion/completions $fpath)
-{{- end }}
 
 # Antidote
 export ANTIDOTE_HOME="${ANTIDOTE_HOME:-$HOME/.antidote}"
@@ -39,18 +35,12 @@ if command -v zoxide >/dev/null 2>&1; then
   eval "$(zoxide init zsh)"
 fi
 
-# ── NVM ──────────────────────────────────────────────────────────────
-{{- if eq .chezmoi.os "darwin" }}
-export NVM_DIR="$HOME/.nvm"
-[ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"
-[ -s "/opt/homebrew/opt/nvm/bash_completion" ] && \. "/opt/homebrew/opt/nvm/bash_completion"
-{{- else if eq .chezmoi.os "linux" }}
+# NVM
 if [[ -s "/usr/share/nvm/init-nvm.sh" ]]; then
   . "/usr/share/nvm/init-nvm.sh"
 else
   export NVM_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/nvm"
   [[ ! -d "$NVM_DIR" ]] && export NVM_DIR="$HOME/.nvm"
-  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+  [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+  [ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"
 fi
-{{- end }}

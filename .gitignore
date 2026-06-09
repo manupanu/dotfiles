@@ -21,6 +21,6 @@ Desktop.ini
 *.zcompdump*
 .zsh_history
 
-# Chezmoi internal state files (not config)
-.chezmoistate*
-.chezmoiroot
+# mdm runtime files
+.mdm-backups/
+.mdm-cache/

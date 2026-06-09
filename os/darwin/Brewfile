@@ -1,9 +1,7 @@
 # Homebrew Bundle for macOS
 # https://github.com/Homebrew/homebrew-bundle
 #
-# This file is managed by chezmoi and deployed to ~/Brewfile.
-# After changing it, run `chezmoi apply` to install new packages automatically.
-# You can also run `brew bundle` anytime from anywhere.
+# Run `brew bundle` from this repository to sync packages.
 
 # --- Formulae (CLI tools) ---
 brew "git"

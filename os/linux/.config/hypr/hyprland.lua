@@ -1,6 +1,6 @@
 -- Manuel's Hyprland config
 -- Split into modules for readability.
--- Managed by chezmoi from ~/.dotfiles/dot_config/hypr/hyprland.lua
+-- Managed directly from ~/.dotfiles/.config/hypr/hyprland.lua
 
 local script_path = debug.getinfo(1, "S").source:sub(2)
 local script_dir = script_path:match("(.*/)")

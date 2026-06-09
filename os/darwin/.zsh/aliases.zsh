@@ -17,9 +17,6 @@ alias fgrep='fgrep --color=auto'
 # Human-readable sizes
 alias df='df -h'
 alias du='du -h'
-{{- if eq .chezmoi.os "linux" }}
-alias free='free -h'
-{{- end }}
 
 # Git
 alias g='git'

@@ -1,51 +1,115 @@
 # dotfiles
 
-Managed with [chezmoi](https://www.chezmoi.io).
+Cross-platform dotfiles, organized in layers for `mdm`.
 
-## Structure
+## Layout
 
+```text
+common/                # shared on every machine
+os/linux/              # Linux-only files
+os/darwin/             # macOS-only files
+os/windows/            # Windows-only files
+host/<hostname>/       # optional machine-specific overrides
+user/<user>/           # optional user-specific overrides
+selectors/<k>/<v>/     # optional custom selectors
+mdm.toml               # mdm config
 ```
-.chezmoiscripts/
-├── macos/        # macOS-only chezmoi scripts (Homebrew, Brewfile)
-├── unix/         # cross-platform Unix chezmoi scripts (starship, zoxide, pi, zsh)
-└── windows/     # Windows-only chezmoi scripts (scoop, PowerShell)
-```
 
-`.chezmoiignore.tmpl` excludes each platform's `.chezmoiscripts/` on other OSes. `.chezmoiscripts/` is used so scripts execute without creating `~/scripts` in the home directory.
-`_functions.sh` is shared helpers (included via `{{ include }}`, never deployed).
+Install order is:
 
-## Setup on a new machine
+1. `common/`
+2. `os/<current-os>/`
+3. `host/<hostname>/`
+4. `user/<user>/`
+5. `selectors/<key>/<value>/`
+
+Later layers override earlier ones.
+
+## Install `mdm`
 
 ### Linux / macOS
 
 ```bash
-sh -c "$(curl -fsLS https://get.chezmoi.io)" -- init --apply https://github.com/manupanu/dotfiles
+python3 -m pip install --user mdm-dotfiles
 ```
 
-### Windows (PowerShell)
+### Windows PowerShell
 
 ```powershell
-winget install twpayne.chezmoi
-chezmoi init --apply https://github.com/manupanu/dotfiles
+py -3 -m pip install --user mdm-dotfiles
 ```
 
-## Key decisions
+## Use
 
-- **NVM** manages Node.js (`nvm install --lts`)
-- **Pi** is installed via `npm install -g` under nvm's node (no bundled pi-node)
-- **Zsh** config lives in `~/.zsh/` (set via `ZDOTDIR` in `~/.zshenv`)
-- **Ghostty** has cross-platform opacity/blur; macOS-only glass blur + transparent titlebar
-- **Git** uses SSH signing via 1Password (`op-ssh-sign`), platform-specific paths in template
-- **No zsh on Windows** — `.chezmoiignore` skips all zsh/ghostty configs there
-- **Hyprland/Waybar on Linux** live in `dot_config/hypr` and `dot_config/waybar` as a small ML4W-free base
-- **Hyprland uses one Lua file**: upstream Hyprland 0.55 deprecated hyprlang `.conf` configs in favor of Lua, so `dot_config/hypr/hyprland.lua` is the single source of truth with no generation step
-- **hyprwhspr** is managed via `dot_config/hyprwhspr/config.json` and shown as `custom/hyprwhspr` in Waybar
+Preview what will be installed:
 
-## Hyprland quick keys
+```bash
+mdm --repo ~/.dotfiles plan
+```
 
-- `Super+Enter` — terminal (`ghostty`)
-- `Super+B` — browser (`helium-browser`)
-- `Super+D` — app launcher (`rofi`)
-- `Super+Alt+D` — toggle hyprwhspr speech-to-text
-- `Super+Shift+B` — restart Waybar
-- `Super+Print` — area screenshot to clipboard
+Apply the dotfiles:
+
+```bash
+mdm --repo ~/.dotfiles apply
+```
+
+Show detected facts:
+
+```bash
+mdm --repo ~/.dotfiles facts
+```
+
+Pass extra selectors when needed:
+
+```bash
+mdm --repo ~/.dotfiles apply --set role=work
+```
+
+## Notes
+
+- Plain files are symlinked by default.
+- Files can be copied instead via `mdm.toml` path rules.
+- `.tmpl` files are rendered before install.
+- `.append` files append text to the current layered file before install.
+- Windows linking falls back from symlink to hard link to copy when needed.
+
+## Current repo split
+
+### Common
+
+- `common/.zshenv`
+- `common/.zsh/.zsh_plugins.txt`
+- `common/.config/btop/`
+- `common/.config/fastfetch/`
+- `common/.config/ghostty/config`
+- `common/.config/starship.toml`
+- `common/.pi/`
+
+### Linux
+
+- `os/linux/.Xresources`
+- `os/linux/.gtkrc-2.0`
+- `os/linux/.gitconfig`
+- `os/linux/.zsh/`
+- `os/linux/.config/gtk-3.0/`
+- `os/linux/.config/gtk-4.0/`
+- `os/linux/.config/hypr/`
+- `os/linux/.config/hyprwhspr/`
+- `os/linux/.config/qt6ct/`
+- `os/linux/.config/rofi/`
+- `os/linux/.config/swaync/`
+- `os/linux/.config/systemd/`
+- `os/linux/.config/waybar/`
+- `os/linux/.config/waypaper/`
+- `os/linux/.config/xdg-terminals.list`
+
+### macOS
+
+- `os/darwin/Brewfile`
+- `os/darwin/.gitconfig`
+- `os/darwin/.zsh/`
+- `os/darwin/.config/ghostty/config`
+
+### Windows
+
+- `os/windows/.gitconfig`
