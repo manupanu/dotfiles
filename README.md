@@ -1,115 +1,83 @@
 # dotfiles
 
-Cross-platform dotfiles, organized in layers for `mdm`.
+Cross-platform dotfiles managed with chezmoi.
+
+## Migration Status
+
+This repository has switched to a native chezmoi source state.
+
+Use `CHEZMOI_MIGRATION.md` for implementation and validation steps.
+
+Quick checks:
+
+```bash
+./validate_chezmoi_templates.sh
+chezmoi --source=/home/manuel/.dotfiles status
+chezmoi --source=/home/manuel/.dotfiles apply --dry-run --verbose
+```
 
 ## Layout
 
 ```text
-common/                # shared on every machine
-os/linux/              # Linux-only files
-os/darwin/             # macOS-only files
-os/windows/            # Windows-only files
-host/<hostname>/       # optional machine-specific overrides
-user/<user>/           # optional user-specific overrides
-selectors/<k>/<v>/     # optional custom selectors
-mdm.toml               # mdm config
+dot_*                  # target files in home (e.g., dot_gitconfig.tmpl -> ~/.gitconfig)
+dot_config/            # ~/.config/* files
+dot_zsh/               # ~/.zsh/* files
+dot_pi/                # ~/.pi/* files
+Brewfile               # macOS package bundle (applied only on darwin)
+.chezmoidata.toml      # template data
+.chezmoiignore.tmpl    # conditional ignore rules
+run_*.sh.tmpl          # apply scripts
 ```
 
-Install order is:
-
-1. `common/`
-2. `os/<current-os>/`
-3. `host/<hostname>/`
-4. `user/<user>/`
-5. `selectors/<key>/<value>/`
-
-Later layers override earlier ones.
-
-## Install `mdm`
+## Install chezmoi
 
 ### Linux / macOS
 
 ```bash
-python3 -m pip install --user mdm-dotfiles
+sh -c "$(curl -fsLS get.chezmoi.io)"
 ```
 
 ### Windows PowerShell
 
 ```powershell
-py -3 -m pip install --user mdm-dotfiles
+winget install twpayne.chezmoi
 ```
 
 ## Use
 
-Preview what will be installed:
+Inspect rendered changes:
 
 ```bash
-mdm --repo ~/.dotfiles plan
+chezmoi --source=/home/manuel/.dotfiles diff
 ```
 
 Apply the dotfiles:
 
 ```bash
-mdm --repo ~/.dotfiles apply
+chezmoi --source=/home/manuel/.dotfiles apply --verbose
 ```
 
-Show detected facts:
+Show available template data:
 
 ```bash
-mdm --repo ~/.dotfiles facts
+chezmoi --source=/home/manuel/.dotfiles data
 ```
 
-Pass extra selectors when needed:
+Validate templates for all supported OS branches:
 
 ```bash
-mdm --repo ~/.dotfiles apply --set role=work
+./validate_chezmoi_templates.sh
 ```
 
 ## Notes
 
-- Plain files are symlinked by default.
-- Files can be copied instead via `mdm.toml` path rules.
-- `.tmpl` files are rendered before install.
-- `.append` files append text to the current layered file before install.
-- Windows linking falls back from symlink to hard link to copy when needed.
+- Templates use `.chezmoi.os` and a `targetOS` override for cross-platform validation.
+- Linux desktop files are Linux-only via `.chezmoiignore.tmpl`.
+- Brewfile and brew bundle script are macOS-only.
+- Git signing key can come from `.chezmoidata.toml` or 1Password lookup.
 
-## Current repo split
+## Supported platforms
 
-### Common
-
-- `common/.config/btop/`
-- `common/.config/fastfetch/`
-- `common/.config/ghostty/config`
-- `common/.config/starship.toml`
-- `common/.pi/`
-
-### Linux
-
-- `os/linux/.Xresources`
-- `os/linux/.gtkrc-2.0`
-- `os/linux/.gitconfig`
-- `os/linux/.zshenv`
-- `os/linux/.zsh/`
-- `os/linux/.config/gtk-3.0/`
-- `os/linux/.config/gtk-4.0/`
-- `os/linux/.config/hypr/`
-- `os/linux/.config/hyprwhspr/`
-- `os/linux/.config/qt6ct/`
-- `os/linux/.config/rofi/`
-- `os/linux/.config/swaync/`
-- `os/linux/.config/systemd/`
-- `os/linux/.config/waybar/`
-- `os/linux/.config/waypaper/`
-- `os/linux/.config/xdg-terminals.list`
-
-### macOS
-
-- `os/darwin/Brewfile`
-- `os/darwin/.gitconfig`
-- `os/darwin/.zshenv`
-- `os/darwin/.zsh/`
-- `os/darwin/.config/ghostty/config`
-
-### Windows
-
-- `os/windows/.gitconfig`
+- Linux: full desktop stack in `dot_config/*` (Hyprland, Waybar, Rofi, GTK, Qt, systemd user).
+- macOS: zsh/git/ghostty templates and Brewfile bootstrap.
+- Windows: minimal support via git template branch.

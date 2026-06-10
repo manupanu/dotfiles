@@ -21,6 +21,6 @@ Desktop.ini
 *.zcompdump*
 .zsh_history
 
-# mdm runtime files
+# Legacy manager runtime files
 .mdm-backups/
 .mdm-cache/
