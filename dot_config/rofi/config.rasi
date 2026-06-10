@@ -1,0 +1,96 @@
+/*
+ * Simplified Rofi launcher theme
+ * Catppuccin Mocha
+ */
+
+configuration {
+    modi: "drun,run,filebrowser,window";
+    font: "Fira Sans 11";
+    show-icons: true;
+    drun-display-format: "{name}";
+    display-drun: " ";
+    display-run: " ";
+    display-filebrowser: " ";
+    display-window: " ";
+    hover-select: false;
+    me-select-entry: "";
+    me-accept-entry: "MousePrimary";
+    window-format: "{w} · {c}";
+}
+
+@import "~/.config/rofi/local-font.rasi"
+@theme "~/.config/rofi/colors.rasi"
+@import "~/.config/rofi/local-border.rasi"
+@import "~/.config/rofi/local-radius.rasi"
+
+window {
+    location: north;
+    anchor: north;
+    width: 34em;
+    border: @border-width;
+    border-color: @primary;
+    border-radius: @border-radius;
+    background-color: @background;
+    transparency: "real";
+}
+
+mainbox {
+    spacing: 0;
+    children: [ "inputbar", "listview" ];
+    background-color: transparent;
+}
+
+inputbar {
+    padding: 12px;
+    spacing: 8px;
+    children: [ "textbox-prompt-colon", "entry" ];
+    background-color: @surface;
+}
+
+textbox-prompt-colon {
+    enabled: true;
+    str: "";
+    text-color: @subtext0;
+    background-color: transparent;
+}
+
+entry {
+    placeholder: "Search";
+    placeholder-color: @overlay1;
+    text-color: @text;
+    background-color: transparent;
+}
+
+listview {
+    lines: 10;
+    columns: 1;
+    cycle: false;
+    dynamic: true;
+    scrollbar: false;
+    padding: 10px;
+    spacing: 6px;
+    background-color: @background;
+    text-color: @text;
+}
+
+element {
+    padding: 10px;
+    border-radius: 10px;
+    background-color: transparent;
+    text-color: @text;
+}
+
+element selected.normal {
+    background-color: @surface1;
+    text-color: @lavender;
+}
+
+element-text {
+    background-color: transparent;
+    text-color: inherit;
+}
+
+element-icon {
+    size: 1.2em;
+    background-color: transparent;
+}

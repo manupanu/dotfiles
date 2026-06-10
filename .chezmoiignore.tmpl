@@ -1,0 +1,30 @@
+# Exclude legacy layout and repo-only files from target state.
+.git/**
+.mdm-backups/**
+README.md
+{{- $os := .chezmoi.os }}
+{{- if hasKey . "targetOS" }}
+{{- $os = .targetOS }}
+{{- end }}
+
+# Only apply Linux desktop stack on Linux.
+{{- if ne $os "linux" }}
+.config/hypr/**
+.config/hyprwhspr/**
+.config/rofi/**
+.config/waybar/**
+.config/waypaper/**
+.config/swaync/**
+.config/gtk-3.0/**
+.config/gtk-4.0/**
+.config/qt6ct/**
+.config/systemd/**
+.config/xdg-terminals.list
+.Xresources
+.gtkrc-2.0
+{{- end }}
+
+# Only apply Homebrew bundle on macOS.
+{{- if ne $os "darwin" }}
+Brewfile
+{{- end }}
