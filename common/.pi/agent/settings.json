@@ -1,7 +1,7 @@
 {
-  "defaultProvider": "opencode-go",
-  "defaultModel": "minimax-m3",
-  "defaultThinkingLevel": "medium",
+  "defaultProvider": "github-copilot",
+  "defaultModel": "gpt-5.5",
+  "defaultThinkingLevel": "high",
   "packages": [
     "npm:@juicesharp/rpiv-ask-user-question",
     "npm:@juicesharp/rpiv-web-tools",
@@ -11,6 +11,6 @@
     "npm:context-mode"
   ],
   "theme": "catppuccin-mocha",
-  "lastChangelogVersion": "0.78.1",
+  "lastChangelogVersion": "0.79.0",
   "quietStartup": true
 }
