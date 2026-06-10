@@ -77,8 +77,6 @@ mdm --repo ~/.dotfiles apply --set role=work
 
 ### Common
 
-- `common/.zshenv`
-- `common/.zsh/.zsh_plugins.txt`
 - `common/.config/btop/`
 - `common/.config/fastfetch/`
 - `common/.config/ghostty/config`
@@ -90,6 +88,7 @@ mdm --repo ~/.dotfiles apply --set role=work
 - `os/linux/.Xresources`
 - `os/linux/.gtkrc-2.0`
 - `os/linux/.gitconfig`
+- `os/linux/.zshenv`
 - `os/linux/.zsh/`
 - `os/linux/.config/gtk-3.0/`
 - `os/linux/.config/gtk-4.0/`
@@ -107,6 +106,7 @@ mdm --repo ~/.dotfiles apply --set role=work
 
 - `os/darwin/Brewfile`
 - `os/darwin/.gitconfig`
+- `os/darwin/.zshenv`
 - `os/darwin/.zsh/`
 - `os/darwin/.config/ghostty/config`
 
