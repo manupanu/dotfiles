@@ -45,6 +45,12 @@ winget install twpayne.chezmoi
 
 ## Use
 
+Initialize on a new machine:
+
+```bash
+chezmoi init --source ~/.dotfiles <your-repo> --apply
+```
+
 Inspect rendered changes:
 
 ```bash

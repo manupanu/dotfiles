@@ -1,6 +1,9 @@
 # Exclude legacy layout and repo-only files from target state.
 .git/**
 .mdm-backups/**
+*.md
+validate_chezmoi_templates.sh
+install-brew-packages.sh
 README.md
 {{- $os := .chezmoi.os }}
 {{- if hasKey . "targetOS" }}
@@ -24,7 +27,5 @@ README.md
 .gtkrc-2.0
 {{- end }}
 
-# Only apply Homebrew bundle on macOS.
-{{- if ne $os "darwin" }}
+# Brewfile is source material for scripts, not a target home file.
 Brewfile
-{{- end }}
