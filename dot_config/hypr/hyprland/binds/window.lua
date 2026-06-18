@@ -5,6 +5,7 @@ return function(vars)
     hl.bind(vars.mainMod .. " + F", hl.dsp.window.fullscreen())
     hl.bind(vars.mainMod .. " + M", hl.dsp.window.fullscreen())
     hl.bind(vars.mainMod .. " + T", hl.dsp.window.float({ action = "toggle" }))
+    hl.bind(vars.mainMod .. " + P", hl.dsp.window.pin({ action = "toggle" }))
     hl.bind(vars.mainMod .. " + S", hl.dsp.workspace.toggle_special("magic"))
     hl.bind(vars.mainMod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special:magic" }))
 

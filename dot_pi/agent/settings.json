@@ -1,7 +1,7 @@
 {
-  "defaultProvider": "github-copilot",
-  "defaultModel": "gpt-5.4-mini",
-  "defaultThinkingLevel": "medium",
+  "defaultProvider": "opencode-go",
+  "defaultModel": "deepseek-v4-pro",
+  "defaultThinkingLevel": "high",
   "packages": [
     "npm:@juicesharp/rpiv-ask-user-question",
     "npm:@juicesharp/rpiv-web-tools",
@@ -11,6 +11,23 @@
     "npm:context-mode"
   ],
   "theme": "catppuccin-mocha",
-  "lastChangelogVersion": "0.79.0",
-  "quietStartup": true
+  "lastChangelogVersion": "0.79.1",
+  "quietStartup": true,
+  "enabledModels": [
+    "github-copilot/claude-opus-4.7",
+    "github-copilot/claude-sonnet-4.6",
+    "github-copilot/gemini-3.5-flash",
+    "github-copilot/gpt-5.5",
+    "github-copilot/gpt-5.4-mini",
+    "github-copilot/gpt-5.3-codex",
+    "github-copilot/gpt-5.4",
+    "opencode-go/deepseek-v4-flash",
+    "opencode-go/deepseek-v4-pro",
+    "opencode-go/glm-5.1",
+    "opencode-go/kimi-k2.6",
+    "opencode-go/mimo-v2.5-pro",
+    "opencode-go/minimax-m3",
+    "opencode-go/qwen3.7-max",
+    "opencode-go/qwen3.7-plus"
+  ]
 }

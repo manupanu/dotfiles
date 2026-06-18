@@ -1,10 +1,8 @@
 # Exclude legacy layout and repo-only files from target state.
 .git/**
-.mdm-backups/**
 *.md
 validate_chezmoi_templates.sh
 install-brew-packages.sh
-README.md
 {{- $os := .chezmoi.os }}
 {{- if hasKey . "targetOS" }}
 {{- $os = .targetOS }}
@@ -29,3 +27,11 @@ README.md
 
 # Brewfile is source material for scripts, not a target home file.
 Brewfile
+
+# Keep Windows minimal: only the essentials (currently .gitconfig).
+{{- if eq $os "windows" }}
+.config/**
+.pi/**
+.zsh/**
+.zshenv
+{{- end }}

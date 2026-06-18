@@ -6,6 +6,7 @@ return function()
         hl.exec_cmd("waybar -c ~/.config/waybar/config.jsonc -s ~/.config/waybar/style.css")
         hl.exec_cmd("swaync")
         hl.exec_cmd("wl-paste --watch cliphist store")
+	    hl.exec_cmd("dev.deedles.Trayscale --hide-window")
 
         -- Ensure wallpaper daemon is running and apply the default wallpaper.
         hl.exec_cmd("bash -lc 'pgrep -x awww-daemon >/dev/null || (nohup awww-daemon >/dev/null 2>&1 &); for i in $(seq 1 20); do awww query >/dev/null 2>&1 && break; sleep 0.1; done; awww img \"$HOME/Pictures/Wallpapers/wallhaven-1p5z71_3840x1600.png\"'")
