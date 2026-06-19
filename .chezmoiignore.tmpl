@@ -1,0 +1,37 @@
+# Exclude legacy layout and repo-only files from target state.
+.git/**
+*.md
+validate_chezmoi_templates.sh
+install-brew-packages.sh
+{{- $os := .chezmoi.os }}
+{{- if hasKey . "targetOS" }}
+{{- $os = .targetOS }}
+{{- end }}
+
+# Only apply Linux desktop stack on Linux.
+{{- if ne $os "linux" }}
+.config/hypr/**
+.config/hyprwhspr/**
+.config/rofi/**
+.config/waybar/**
+.config/waypaper/**
+.config/swaync/**
+.config/gtk-3.0/**
+.config/gtk-4.0/**
+.config/qt6ct/**
+.config/systemd/**
+.config/xdg-terminals.list
+.Xresources
+.gtkrc-2.0
+{{- end }}
+
+# Brewfile is source material for scripts, not a target home file.
+Brewfile
+
+# Keep Windows minimal: only the essentials (currently .gitconfig).
+{{- if eq $os "windows" }}
+.config/**
+.pi/**
+.zsh/**
+.zshenv
+{{- end }}

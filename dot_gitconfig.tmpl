@@ -1,0 +1,28 @@
+[gpg]
+    format = ssh
+[gpg "ssh"]
+{{- $os := .chezmoi.os }}
+{{- if hasKey . "targetOS" }}
+{{- $os = .targetOS }}
+{{- end }}
+{{- if eq $os "darwin" }}
+    program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
+{{- else if eq $os "windows" }}
+    program = C:/Users/{{ .chezmoi.username }}/AppData/Local/Microsoft/1Password/app/8/op-ssh-sign.exe
+{{- else }}
+    program = /opt/1Password/op-ssh-sign
+{{- end }}
+[commit]
+    gpgsign = true
+[user]
+{{- if and .op.useOnePassword .op.gitSigningKeyRef }}
+    signingkey = {{ onepasswordRead .op.gitSigningKeyRef | quote }}
+{{- else }}
+    signingkey = {{ .git.signingKey | quote }}
+{{- end }}
+    name = {{ .git.name | quote }}
+    email = {{ .git.email | quote }}
+[init]
+    defaultBranch = main
+[core]
+    editor = code --wait
