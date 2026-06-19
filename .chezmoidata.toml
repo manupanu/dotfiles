@@ -1,8 +1,9 @@
 [git]
 name = "Manuel Anrig"
 email = "me@manuelanrig.ch"
+username = "manupanu"
 signingKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIClBF3x9IGzrqKGNUWa0O60eYndkvg+tcQFjR1qMYRMP"
 
 [op]
-useOnePassword = false
-gitSigningKeyRef = "op://Private/Git SSH signing key/public key"
+useOnePassword = true
+gitSigningKeyRef = "op://Private/hoh6xyfxtij4tth5pus7nnmrc4/public key"

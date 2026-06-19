@@ -21,6 +21,7 @@
     signingkey = {{ .git.signingKey | quote }}
 {{- end }}
     name = {{ .git.name | quote }}
+    username = {{ .git.username | quote }}
     email = {{ .git.email | quote }}
 [init]
     defaultBranch = main

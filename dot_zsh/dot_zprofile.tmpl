@@ -15,8 +15,10 @@ fi
 export EDITOR="zed --wait"
 export VISUAL="zed --wait"
 export PIPENV_VENV_IN_PROJECT=1
+{{- if .op.useOnePassword }}
 export BRAVE_SEARCH_API_KEY={{ onepasswordRead "op://Private/Brave Search/credential" }}
 export SERPER_API_KEY={{ onepasswordRead "op://Private/Serper API Key/credential" }}
+{{- end }}
 
 # PATH
 [[ -d "$HOME/bin" ]] && PATH="$HOME/bin:$PATH"
