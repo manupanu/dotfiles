@@ -12,8 +12,8 @@ fi
 {{- end }}
 
 # Editor & env
-export EDITOR="code --reuse-window --wait ."
-export VISUAL="code --reuse-window --wait ."
+export EDITOR="code --reuse-window --wait"
+export VISUAL="code --reuse-window --wait"
 export PIPENV_VENV_IN_PROJECT=1
 export BRAVE_SEARCH_API_KEY={{ onepasswordRead "op://Private/Brave Search/credential" }}
 export SERPER_API_KEY={{ onepasswordRead "op://Private/Serper API Key/credential" }}
