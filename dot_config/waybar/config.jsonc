@@ -29,6 +29,7 @@
   ],
 
   "hyprland/workspaces": {
+    "move-to-monitor": true,
     "format": "{icon}",
     "format-icons": {
       "1": "一",
