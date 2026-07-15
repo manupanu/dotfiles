@@ -8,7 +8,7 @@
 {{- if eq $os "darwin" }}
     program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
 {{- else if eq $os "windows" }}
-    program = C:/Users/{{ .chezmoi.username }}/AppData/Local/Microsoft/1Password/app/8/op-ssh-sign.exe
+    program = {{ .chezmoi.homeDir }}/AppData/Local/Microsoft/1Password/app/8/op-ssh-sign.exe
 {{- else }}
     program = /opt/1Password/op-ssh-sign
 {{- end }}
@@ -27,3 +27,6 @@
     defaultBranch = main
 [core]
     editor = zed --wait
+{{- if eq $os "windows" }}
+    sshCommand = C:/Windows/System32/OpenSSH/ssh.exe
+{{- end }}
