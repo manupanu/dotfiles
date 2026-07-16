@@ -53,6 +53,11 @@
       "type": "link"
     },
     {
+      "src": "config/zed/settings.json",
+      "dst": "~/.config/zed/settings.json",
+      "type": "link"
+    },
+    {
       "src": "pi",
       "dst": "~/.pi",
       "type": "link"
