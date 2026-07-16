@@ -1,0 +1,68 @@
+{
+  "mappings": [
+    { "src": "git/gitconfig.tmpl", "dst": "~/.gitconfig", "type": "template" },
+    {
+      "src": "zsh/zshenv",
+      "dst": "~/.zshenv",
+      "type": "link",
+      "os": ["darwin", "linux"]
+    },
+    {
+      "src": "zsh/zshrc.tmpl",
+      "dst": "~/.zsh/.zshrc",
+      "type": "template",
+      "os": ["darwin", "linux"]
+    },
+    {
+      "src": "zsh/zprofile.tmpl",
+      "dst": "~/.zsh/.zprofile",
+      "type": "template",
+      "os": ["darwin", "linux"]
+    },
+    {
+      "src": "zsh/aliases.zsh.tmpl",
+      "dst": "~/.zsh/aliases.zsh",
+      "type": "template",
+      "os": ["darwin", "linux"]
+    },
+    {
+      "src": "zsh/zsh_plugins.txt",
+      "dst": "~/.zsh/.zsh_plugins.txt",
+      "type": "link",
+      "os": ["darwin", "linux"]
+    },
+    {
+      "src": "config/starship.toml",
+      "dst": "~/.config/starship.toml",
+      "type": "copy"
+    },
+    {
+      "src": "config/btop",
+      "dst": "~/.config/btop",
+      "type": "link",
+      "os": ["darwin", "linux"]
+    },
+    {
+      "src": "config/fastfetch",
+      "dst": "~/.config/fastfetch",
+      "type": "link"
+    },
+    {
+      "src": "config/ghostty",
+      "dst": "~/.config/ghostty",
+      "type": "link"
+    },
+    {
+      "src": "pi",
+      "dst": "~/.pi",
+      "type": "link"
+    }
+  ],
+  "scripts": [
+    {
+      "path": "scripts/install-brew-packages.sh",
+      "os": ["darwin"],
+      "stage": "pre"
+    }
+  ]
+}

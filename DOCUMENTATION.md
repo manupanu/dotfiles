@@ -1,0 +1,230 @@
+# Manuel's Agentic Dotfiles Manager (`madm.py`) Documentation
+
+`madm.py` is a lightweight, dependency-free, cross-platform dotfiles manager written in Python 3. It replaces complex tools like `chezmoi` with a simple configuration-driven design that supports symlinking, copying, Python-powered templates, 1Password integration, hook scripts, and multi-source configuration merges.
+
+---
+
+## 1. Directory Layout
+
+The repository is structured to mirror your home directory's structure without prefixes, making dotfiles directly editable:
+
+```text
+.
+├── madm.py                  # Self-contained Python installer/manager
+├── dotfiles.json            # Central mapping and hook configuration
+├── dotfiles.local.json      # Gitignored local machine settings & overrides
+├── Brewfile                 # macOS Homebrew packages list
+├── git/
+│   └── gitconfig.tmpl       # Git config template
+├── zsh/
+│   ├── zshenv               # Linked directly to ~/.zshenv
+│   ├── zprofile.tmpl        # Rendered to ~/.zsh/.zprofile
+│   ├── zshrc.tmpl           # Rendered to ~/.zsh/.zshrc
+│   ├── aliases.zsh.tmpl     # Rendered to ~/.zsh/aliases.zsh
+│   └── zsh_plugins.txt      # Linked to ~/.zsh/.zsh_plugins.txt
+├── config/                  # Subdirectories mapped to ~/.config/
+│   ├── btop/
+│   ├── ghostty/
+│   └── ...
+└── scripts/                 # Execution hooks (e.g. install-brew-packages.sh)
+```
+
+---
+
+## 2. Command Line Interface Reference
+
+Execute the manager using `python3 madm.py [flags]`.
+
+| Flag | Shortcut | Description |
+|:---|:---:|:---|
+| `--init` | | Launches the interactive wizard to set up or modify `dotfiles.local.json`. |
+| `--check` | | Runs template rendering validation and lists sync status for all mappings. |
+| `--restore` | | Opens the interactive menu to restore a timestamped backup folder. |
+| `--dry-run` | `-d` | Simulates file changes, logs warnings, and shows planned operations without modifying files. |
+| `--diff` | | Prints a unified colorized diff showing planned changes (implies dry-run). |
+| `--prune` | | Scans target directories and removes stale symlinks pointing to the repository. |
+| `--interactive`| `-i` | Prompts you before overwriting existing destination files. |
+| `--verbose` | `-v` | Prints extra debug information, such as skipped files. |
+| `--no-color` | | Disables ANSI coloring in logs. |
+| `--target-os` | | Overrides the current OS detection (`darwin`, `linux`, `windows`) for testing. |
+| `--target-hostname`| | Overrides the detected system hostname for testing. |
+
+---
+
+## 3. Configuration Reference
+
+### 3.1 Main Mappings Config (`dotfiles.json`)
+The core configuration maps sources in the repository to target files in the filesystem.
+
+```json
+{
+  "includes": [
+    "optional_overlay.json"
+  ],
+  "mappings": [
+    {
+      "src": "git/gitconfig.tmpl",
+      "dst": "~/.gitconfig",
+      "type": "template"
+    },
+    {
+      "src": "zsh/zshenv",
+      "dst": "~/.zshenv",
+      "type": "link"
+    },
+    {
+      "src": "config/btop",
+      "dst": "~/.config/btop",
+      "type": "link",
+      "os": ["darwin", "linux"]
+    }
+  ],
+  "scripts": [
+    {
+      "path": "scripts/install-brew-packages.sh",
+      "os": "darwin",
+      "stage": "post"
+    }
+  ]
+}
+```
+
+#### Mapping Fields:
+- `src` (string, required): Repository path relative to root.
+- `dst` (string, required): Destination target path (supports `~` and env vars like `$VAR`).
+- `type` (string, optional): One of `"link"` (default), `"copy"`, or `"template"`.
+- `os` (string/list, optional): Restricts this mapping to matching operating systems (`darwin`, `linux`, `windows`).
+- `hostname` (string/list, optional): Restricts this mapping to matching hostnames.
+
+#### Script Fields:
+- `path` (string, required): Script path relative to root.
+- `os` (string/list, optional): Restricts execution to matching operating systems.
+- `hostname` (string/list, optional): Restricts execution to matching hostnames.
+- `stage` (string, optional): One of `"pre"` (runs before mappings) or `"post"` (default, runs after mappings).
+
+---
+
+### 3.2 Machine-Specific Overrides (`dotfiles.local.json`)
+This file is excluded from Git. It defines variables used during template rendering:
+
+```json
+{
+  "git": {
+    "name": "Manuel Anrig",
+    "email": "me@manuelanrig.ch",
+    "username": "manupanu",
+    "signingKey": "ssh-ed25519 AAAAC3Nza..."
+  },
+  "op": {
+    "useOnePassword": true,
+    "gitSigningKeyRef": "op://Private/..."
+  }
+}
+```
+
+---
+
+### 3.3 Modular Configuration Merging (`includes`)
+Both config files support `"includes": ["relative/path/to/other.json"]`.
+- Files are parsed and merged recursively.
+- Mappings and scripts lists are appended.
+- Top-level variables (e.g. `git`, `op` configs) are merged dictionary-wise, allowing work/private overlays to easily supplement core variables.
+
+---
+
+## 4. Template Engine Specification
+
+Files of type `"template"` are rendered dynamically. The parser evaluates control directives and substitutes expressions.
+
+### 4.1 Syntax
+
+#### Variable Substitution
+Substitute variables using `{{ expression }}`. The expression is evaluated as standard Python.
+```ini
+name = {{ git.name }}
+email = {{ git.email }}
+```
+
+#### Conditionals
+Control blocks are line-based and use standard Python syntax within `{{ if ... }}`, `{{ elif ... }}`, `{{ else }}`, and `{{ end }}`:
+```bash
+{{ if os == "darwin" }}
+    # Darwin settings
+{{ elif os == "linux" }}
+    # Linux settings
+{{ else }}
+    # Other settings
+{{ end }}
+```
+
+### 4.2 Helper Functions
+
+The following helpers are exposed to the template context:
+- `os` (string): The current operating system (`darwin`, `linux`, `windows`).
+- `hostname` (string): The current hostname.
+- `home_dir` (string): Absolute path to the user's home directory.
+- `env("NAME")`: Retrieves the value of the environment variable `NAME`.
+- `command_exists("cmd")`: Returns `True` if `cmd` is available on the system PATH.
+- `read_file("path")`: Reads and returns the contents of a file (path resolved relative to repository root).
+- `quote(value)`: Safely escapes double-quotes and encloses the string in quotes.
+- `op("ref")`: Reads a secret from 1Password using the `op` CLI.
+  - *Note: During `--dry-run` or `--diff` runs, `op` calls are mocked to output `<1Password secret: ref>` to prevent connection stalls or login prompts.*
+
+---
+
+## 5. Backups & Restoration
+
+When `madm.py` overwrites a file or directory, it does not leave `.bak` files in target directories. Instead, it backs them up to a central repository folder.
+
+### 5.1 Storage Structure
+Backups are stored inside `.madm-backups/backup_YYYYMMDD_HHMMSS/`:
+```text
+.madm-backups/
+└── backup_20260716_092000/
+    ├── file_0                 # Backed up file or directory
+    ├── file_1                 # Backed up file or directory
+    └── metadata.json          # Index mapping backup files to original destinations
+```
+
+#### `metadata.json` Format:
+```json
+{
+  "files": {
+    "file_0": {
+      "original_dst": "/Users/manuel/.gitconfig",
+      "type": "file"
+    },
+    "file_1": {
+      "original_dst": "/Users/manuel/.zshenv",
+      "type": "link",
+      "target": "/Users/manuel/.dotfiles/old_zshenv"
+    }
+  }
+}
+```
+
+### 5.2 Restore Operation
+Run `python3 madm.py --restore` to launch the restore manager:
+1. Lists all available backups with timestamps and item counts.
+2. Prompts you to pick a backup index.
+3. Automatically moves files back to their original destinations, recreating symlinks or directories as necessary.
+4. Deletes the backup directory once successfully restored.
+
+---
+
+## 6. Platform-Specific Integration
+
+### 6.1 macOS
+- Automatically registers the `scripts/install-brew-packages.sh` hook.
+- Links tools like Ghostty, fastfetch, and btop.
+
+### 6.2 Linux
+- Links Hyprland desktop stack configs (`hypr/`, `waybar/`, `rofi/`, `swaync/`, `gtk-3.0/`, `gtk-4.0/`, `systemd/`, etc.).
+- Evaluates Linux-only blocks (e.g. `aliases.zsh.tmpl` adding `alias free='free -h'`).
+
+### 6.3 Windows
+- Mappings filter down to minimal essentials (e.g. `gitconfig`, `zshenv`).
+- **Symlinking Privileges**: Creating symlinks on Windows requires administrative privileges.
+  - If a symlink fails with a `PermissionError`, the script checks if Developer Mode is disabled.
+  - Prompts you to elevate to Administrator via UAC.
+  - If accepted, re-launches the installer elevated. If rejected, safely falls back to copying the file.

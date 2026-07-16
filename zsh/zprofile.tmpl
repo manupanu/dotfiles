@@ -1,0 +1,33 @@
+{{ if os == "darwin" }}
+# Homebrew (macOS)
+if [[ -x "/opt/homebrew/bin/brew" ]]; then
+  eval "$(/opt/homebrew/bin/brew shellenv zsh)"
+elif [[ -x "/usr/local/bin/brew" ]]; then
+  eval "$(/usr/local/bin/brew shellenv zsh)"
+fi
+{{ end }}
+
+# Editor & env
+export EDITOR="zed --wait"
+export VISUAL="zed --wait"
+export PIPENV_VENV_IN_PROJECT=1
+{{ if op_use_one_password }}
+export BRAVE_SEARCH_API_KEY="{{ op("op://Private/Brave Search/credential") }}"
+export SERPER_API_KEY="{{ op("op://Private/Serper API Key/credential") }}"
+export OPENCODE_API_KEY="{{ op("op://Private/opencode - eiger/credential") }}"
+{{ end }}
+
+# PATH
+[[ -d "$HOME/bin" ]] && PATH="$HOME/bin:$PATH"
+[[ -d "$HOME/.local/bin" ]] && PATH="$HOME/.local/bin:$PATH"
+[[ -d "$HOME/.cargo/bin" ]] && PATH="$HOME/.cargo/bin:$PATH"
+{{ if os == "darwin" }}
+if command -v brew >/dev/null 2>&1; then
+  rustup_brew_bin="$(brew --prefix rustup)/bin"
+  [[ -d "$rustup_brew_bin" ]] && PATH="$rustup_brew_bin:$PATH"
+fi
+{{ end }}
+{{ if os == "linux" }}
+[[ -d "/usr/local/bin" ]] && PATH="/usr/local/bin:$PATH"
+{{ end }}
+export PATH

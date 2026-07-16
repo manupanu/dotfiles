@@ -7,6 +7,7 @@
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+__pycache__/
 
 # Editor files
 *.swp
@@ -24,3 +25,11 @@ Desktop.ini
 # Legacy manager runtime files
 .mdm-backups/
 .mdm-cache/
+.madm-backups/
+
+# Local machine settings
+dotfiles.local.json
+pi/context-mode/sessions/
+pi/agent/npm/
+pi/agent/sessions/
+pi/agent/auth.json

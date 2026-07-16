@@ -46,11 +46,11 @@ cask "1password"
 cask "1password-cli"
 
 cask "ghostty"
-cask "visual-studio-code"
+cask "zed"
 cask "raycast"
 cask "spotify"
 cask "obsidian"
-cask "mac-mouse-fix"
+cask "bettertouchtool"
 cask "tailscale-app"
 
 

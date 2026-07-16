@@ -1,62 +1,57 @@
-# Copilot instructions for this repo
+# Coding Assistant Instructions for this Repo
 
-This is a cross-platform **chezmoi**-managed dotfiles repository (source state, not the applied
-target). Files here are templates/renamed sources that chezmoi turns into real dotfiles in the
-home directory — do not treat paths in this repo as the paths they represent on disk.
+This repository contains cross-platform dotfiles managed with `madm.py` (Manuel's Agentic Dotfiles Manager).
 
-## Chezmoi naming conventions
+## Overview of madm.py
 
-- `dot_foo` → applies to `~/.foo` (e.g. `dot_zshenv` → `~/.zshenv`, `dot_config/` → `~/.config/`).
-- Files ending in `.tmpl` are Go templates rendered with chezmoi's template data before being
-  written to the target path (the `.tmpl` suffix is stripped on apply).
-- Template data comes from `.chezmoidata.toml` (static values like git name/email/signing key)
-  and `.chezmoi.toml.tmpl` (machine-generated config, sourceDir/mode).
-- `.chezmoiignore.tmpl` conditionally excludes paths per-OS at apply time (e.g. Linux desktop
-  configs like Hyprland/Waybar/Rofi are skipped on non-Linux; `.config`/`.zsh`/`.pi` are skipped
-  on Windows, which only gets the git config).
-- `run_onchange_*.sh.tmpl` scripts execute automatically on `chezmoi apply` when their rendered
-  content changes (e.g. `run_onchange_install-brew-packages.sh.tmpl` runs `brew bundle` on macOS
-  only).
+- **Configuration file**: `dotfiles.json` defines all file mappings (link, copy, template) and script hooks.
+- **Local overrides**: `dotfiles.local.json` is a git-ignored file containing local configurations (e.g., git username, email, 1Password settings). It must conform to `dotfiles.local.json.example`.
+- **Target OS & Hostname**: The manager automatically detects the current OS (`darwin`, `linux`, `windows`) and hostname, and processes only matching mappings/scripts.
+- **Execution command**: Run the manager using `python3 madm.py` (or `python madm.py`).
 
-## Cross-platform OS branching pattern
+## Template Syntax
 
-Templates determine OS via `{{ .chezmoi.os }}`, but support a `targetOS` override so templates
-can be validated for a different OS than the one Copilot/dev is running on:
+Files marked with `"type": "template"` in `dotfiles.json` (or files ending in `.tmpl`) are processed with Python-based string substitution and block conditionals.
 
+### Variables & Context
+The template context contains:
+- `os`: Current target OS (`darwin`, `linux`, `windows`).
+- `hostname`: Current hostname.
+- `home_dir`: Absolute path to user's home directory.
+- `git`: Local Git settings object (accessed via `git.name`, `git.email`, etc.).
+- `op_use_one_password`: Boolean indicating if 1Password is enabled.
+- `op_git_signing_key_ref`: 1Password reference string for the Git signing key.
+- `op(ref)`: Function that runs `op read ref` to resolve secrets dynamically.
+- `env(name)`: Function to lookup environment variables.
+
+### Template Conditionals
+Conditionals use `{{ if ... }}`, `{{ elif ... }}`, `{{ else }}`, and `{{ end }}` block markers. The expression inside is evaluated as standard Python code:
+
+```ini
+[gpg "ssh"]
+{{ if os == "darwin" }}
+    program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
+{{ elif os == "windows" }}
+    program = {{ home_dir }}/AppData/Local/Microsoft/WindowsApps/op-ssh-sign.exe
+{{ else }}
+    program = /opt/1Password/op-ssh-sign
+{{ end }}
 ```
-{{- $os := .chezmoi.os -}}
-{{- if hasKey . "targetOS" -}}{{- $os = .targetOS -}}{{- end -}}
-{{- if eq $os "darwin" -}} ... {{- else if eq $os "windows" -}} ... {{- else -}} ... {{- end -}}
+
+### Secret Integration (1Password)
+Use the `op` helper function to read secrets from 1Password:
+```ini
+signingkey = "{{ op(op_git_signing_key_ref) }}"
 ```
-
-Follow this exact pattern when adding new OS-conditional logic in templates (see
-`dot_gitconfig.tmpl` and `run_onchange_install-brew-packages.sh.tmpl` for examples), so the
-`targetOS`-based validation path keeps working.
-
-## Secrets
-
-Git commit signing key can come from either `.chezmoidata.toml` (`git.signingKey`) or 1Password
-via `onepasswordRead` with the ref in `.chezmoidata.toml` (`op.gitSigningKeyRef`), gated by
-`op.useOnePassword`. Never hardcode secrets directly into templates — use this existing pattern.
 
 ## Validating changes
-
-There is no build/test suite. To validate template changes:
+Before applying changes, perform dry runs for all supported platforms to ensure templates render correctly and mappings resolve properly:
 
 ```bash
-chezmoi --source=<repo-path> data                       # inspect template data
-chezmoi --source=<repo-path> diff                        # preview rendered changes
-chezmoi --source=<repo-path> apply --dry-run --verbose   # dry-run apply
+python3 madm.py --dry-run --target-os darwin
+python3 madm.py --dry-run --target-os linux
+python3 madm.py --dry-run --target-os windows
+python3 madm.py --dry-run --target-os linux --target-hostname custom-host
 ```
 
-Note: the README references `./validate_chezmoi_templates.sh` and `CHEZMOI_MIGRATION.md` for
-multi-OS template validation, but these files do not currently exist in the repo — verify before
-relying on them, or ask the user if they were intentionally removed.
-
-## Layout reference
-
-- `dot_config/` — Linux desktop stack (Hyprland, Waybar, Rofi, GTK/Qt, systemd user units) plus
-  cross-platform tool configs (ghostty, btop, fastfetch, starship).
-- `dot_zsh/` — zsh config templates and plugin list.
-- `dot_pi/` — agent-related config.
-- `Brewfile` — macOS-only Homebrew bundle, applied via the `run_onchange_*` script.
+Add `--verbose` to inspect more detailed output.

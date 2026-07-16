@@ -1,0 +1,28 @@
+[gpg]
+    format = ssh
+[gpg "ssh"]
+{{ if os == "darwin" }}
+    program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
+{{ elif os == "windows" }}
+    program = {{ home_dir }}/AppData/Local/Microsoft/WindowsApps/op-ssh-sign.exe
+{{ else }}
+    program = /opt/1Password/op-ssh-sign
+{{ end }}
+[commit]
+    gpgsign = true
+[user]
+{{ if op_use_one_password and op_git_signing_key_ref }}
+    signingkey = "{{ op(op_git_signing_key_ref) }}"
+{{ else }}
+    signingkey = "{{ git.signingKey }}"
+{{ end }}
+    name = "{{ git.name }}"
+    username = "{{ git.username }}"
+    email = "{{ git.email }}"
+[init]
+    defaultBranch = main
+[core]
+    editor = zed --wait
+{{ if os == "windows" }}
+    sshCommand = C:/Windows/System32/OpenSSH/ssh.exe
+{{ end }}

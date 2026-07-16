@@ -1,89 +1,118 @@
 # dotfiles
 
-Cross-platform dotfiles managed with chezmoi.
-
-## Migration Status
-
-This repository has switched to a native chezmoi source state.
-
-Use `CHEZMOI_MIGRATION.md` for implementation and validation steps.
-
-Quick checks:
-
-```bash
-./validate_chezmoi_templates.sh
-chezmoi --source=/home/manuel/.dotfiles status
-chezmoi --source=/home/manuel/.dotfiles apply --dry-run --verbose
-```
+Cross-platform dotfiles managed with `madm.py` (Manuel's Agentic Dotfiles Manager).
 
 ## Layout
 
 ```text
-dot_*                  # target files in home (e.g., dot_gitconfig.tmpl -> ~/.gitconfig)
-dot_config/            # ~/.config/* files
-dot_zsh/               # ~/.zsh/* files
-dot_pi/                # ~/.pi/* files
-Brewfile               # macOS package bundle (applied only on darwin)
-.chezmoidata.toml      # template data
-.chezmoiignore.tmpl    # conditional ignore rules
-run_*.sh.tmpl          # apply scripts
+.
+├── madm.py                  # Platform-independent Python installer & manager
+├── dotfiles.json            # Central mapping and hook configuration
+├── dotfiles.local.json      # Gitignored file for local settings & secrets
+├── Brewfile                 # macOS Homebrew package list
+├── git/                     # Git configurations
+│   └── gitconfig.tmpl       # Git config template
+├── zsh/                     # Zsh configurations
+│   ├── zshenv               # Linked to ~/.zshenv
+│   ├── zprofile.tmpl        # Rendered to ~/.zsh/.zprofile
+│   ├── zshrc.tmpl           # Rendered to ~/.zsh/.zshrc
+│   ├── aliases.zsh.tmpl     # Rendered to ~/.zsh/aliases.zsh
+│   └── zsh_plugins.txt      # Linked to ~/.zsh/.zsh_plugins.txt
+├── config/                  # Linked configurations (btop, ghostty, fastfetch, etc.)
+└── scripts/                 # Platform-specific script hooks
 ```
 
-## Install chezmoi
+## Quick Start
 
-### Linux / macOS
-
+### 1. Initialize Local Settings
+Run the interactive wizard to generate your machine-specific `dotfiles.local.json` file:
 ```bash
-sh -c "$(curl -fsLS get.chezmoi.io)"
+python3 madm.py --init
 ```
+This prompts you for your Git credentials and 1Password settings, fetching defaults from Git where possible.
 
-### Windows PowerShell
-
-```powershell
-winget install twpayne.chezmoi
-```
-
-## Use
-
-Initialize on a new machine:
-
+### 2. Run Health Check & Validate Configuration
+Verify that all configuration templates compile and render without errors for **all** target platforms (macOS, Linux, and Windows) and inspect the synchronization state of your active dotfiles:
 ```bash
-chezmoi init --source ~/.dotfiles <your-repo> --apply
+python3 madm.py --check
 ```
 
-Inspect rendered changes:
-
+### 3. Preview Changes (Dry Run & Diff)
+Inspect exactly what changes will be applied to your system (including line-by-line diffs of templates) without modifying any files:
 ```bash
-chezmoi --source=/home/manuel/.dotfiles diff
+python3 madm.py --diff
 ```
+*Note: `--diff` automatically implies dry-run mode.*
 
-Apply the dotfiles:
-
+You can simulate other platforms or hostnames to test configurations:
 ```bash
-chezmoi --source=/home/manuel/.dotfiles apply --verbose
+python3 madm.py --diff --target-os linux
 ```
 
-Show available template data:
-
+### 4. Apply Dotfiles
+Apply all symlinks, copies, and render the templates to your home directory:
 ```bash
-chezmoi --source=/home/manuel/.dotfiles data
+python3 madm.py
 ```
-
-Validate templates for all supported OS branches:
-
+To run interactively and approve any file overwrites:
 ```bash
-./validate_chezmoi_templates.sh
+python3 madm.py --interactive
 ```
 
-## Notes
+### 5. Restore From Central Backups
+If you ever need to rollback files overwritten during an apply run, you can restore them using the restore menu:
+```bash
+python3 madm.py --restore
+```
+This lists your timestamped backup directories stored in `.madm-backups/` and allows you to restore them cleanly.
 
-- Templates use `.chezmoi.os` and a `targetOS` override for cross-platform validation.
-- Linux desktop files are Linux-only via `.chezmoiignore.tmpl`.
-- Brewfile and brew bundle script are macOS-only.
-- Git signing key can come from `.chezmoidata.toml` or 1Password lookup.
+---
 
-## Supported platforms
+## Command Line Flags
 
-- Linux: full desktop stack in `dot_config/*` (Hyprland, Waybar, Rofi, GTK, Qt, systemd user).
-- macOS: zsh/git/ghostty templates and Brewfile bootstrap.
-- Windows: minimal support via git template branch.
+| Flag | Shortcut | Description |
+|---|---|---|
+| `--init` | | Start the interactive initialization wizard. |
+| `--check` | | Run system health status checks and cross-platform template compilation checks. |
+| `--restore` | | Restore a centralized backup from `.madm-backups/`. |
+| `--dry-run` | `-d` | Dry run mode. Log what actions would be performed. |
+| `--diff` | | Show unified, colorized diffs of file changes (implies dry-run). |
+| `--prune` | | Remove stale symlinks in target directories that point to this repository. |
+| `--interactive`| `-i` | Ask before overwriting target files that already exist (default: backup to `.madm-backups/`). |
+| `--verbose` | `-v` | Enable detailed logging. |
+| `--no-color` | | Disable colorized terminal outputs. |
+| `--target-os` | | Override current operating system (darwin, linux, windows). |
+| `--target-hostname` | | Override current hostname. |
+
+---
+
+## Features
+
+### Configuration Inclusions (`includes`)
+Both `dotfiles.json` and `dotfiles.local.json` support an optional `"includes"` array containing relative paths to other JSON configurations:
+```json
+{
+  "includes": [
+    "work_mappings.json",
+    "private_settings.json"
+  ]
+}
+```
+`madm.py` recursively resolves and merges included configurations, combining mappings, scripts, and context variables.
+
+### Template Helper Functions
+The Python template context contains the following built-in helpers you can call inside `{{ ... }}` blocks:
+- `command_exists("cmd")`: Returns `True` if `cmd` is installed and in PATH.
+  - *Example*: `{{ if command_exists("zoxide") }}`
+- `read_file("path")`: Returns the contents of a file (path resolved relative to repo root).
+  - *Example*: `signingkey = {{ read_file("git/public_key.pub") }}`
+- `quote(val)`: Safely escapes double-quotes and encloses the value in quotes.
+  - *Example*: `name = {{ quote(git.name) }}`
+- `op("ref")`: Dynamically reads a secret from 1Password using the `op` CLI.
+- `env("VAR")`: Reads an environment variable.
+
+### Windows UAC Elevation
+If a symlink creation fails on Windows due to insufficient permissions (Developer Mode disabled), the script will prompt you to automatically escalate to Administrator via UAC.
+
+### Centralized Backups
+All backups of overwritten targets are moved into `.madm-backups/backup_YYYYMMDD_HHMMSS/` along with a `metadata.json` mapping. This keeps target directories clean.
