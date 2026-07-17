@@ -822,7 +822,7 @@ def run_health_check(config, local_config, repo_dir):
                 context = {
                     "os": current_os,
                     "hostname": current_hostname,
-                    "home_dir": str(Path.home()),
+                    "home_dir": Path.home().as_posix(),
                     "git": ConfigObject(local_config.get("git", {})),
                     "op_settings": ConfigObject(local_config.get("op", {})),
                     "op_use_one_password": local_config.get("op", {}).get("useOnePassword", False),
@@ -1049,7 +1049,7 @@ def main():
     context = {
         "os": current_os,
         "hostname": current_hostname,
-        "home_dir": str(Path.home()),
+        "home_dir": Path.home().as_posix(),
         "git": ConfigObject(local_config.get("git", {})),
         "op_settings": ConfigObject(local_config.get("op", {})),
         "op_use_one_password": local_config.get("op", {}).get("useOnePassword", False),

@@ -11,7 +11,7 @@
 [commit]
     gpgsign = true
 [user]
-{{ if op_use_one_password }}
+{{ if command_exists("op") }}
     signingkey = "{{ op("op://Private/hoh6xyfxtij4tth5pus7nnmrc4/public key") }}"
 {{ end }}
     name = "{{ git.name }}"

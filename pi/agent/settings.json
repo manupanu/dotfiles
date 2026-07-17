@@ -1,6 +1,6 @@
 {
-  "defaultProvider": "github-copilot",
-  "defaultModel": "claude-sonnet-5",
+  "defaultProvider": "opencode-go",
+  "defaultModel": "glm-5.2",
   "defaultThinkingLevel": "medium",
   "packages": [
     "npm:@juicesharp/rpiv-ask-user-question",

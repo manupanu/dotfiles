@@ -11,7 +11,7 @@ fi
 export EDITOR="zed --wait"
 export VISUAL="zed --wait"
 export PIPENV_VENV_IN_PROJECT=1
-{{ if op_use_one_password }}
+{{ if command_exists("op") }}
 export BRAVE_SEARCH_API_KEY="{{ op("op://Private/Brave Search/credential") }}"
 export SERPER_API_KEY="{{ op("op://Private/Serper API Key/credential") }}"
 export OPENCODE_API_KEY="{{ op("op://Private/opencode - eiger/credential") }}"
