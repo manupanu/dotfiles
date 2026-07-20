@@ -16,6 +16,7 @@ from pathlib import Path
 OP_CACHE = {}
 DRY_RUN = False
 CURRENT_BACKUP_DIR = None
+OP_ACCOUNT = None
 
 # Color codes helper
 class Colors:
@@ -86,8 +87,10 @@ def quote_val(val):
     return f'"{escaped}"'
 
 def resolve_op_secret(ref):
-    if ref in OP_CACHE:
-        return OP_CACHE[ref]
+    account = OP_ACCOUNT or os.environ.get("OP_ACCOUNT")
+    cache_key = (account, ref)
+    if cache_key in OP_CACHE:
+        return OP_CACHE[cache_key]
     
     if DRY_RUN:
         return f"<1Password secret: {ref}>"
@@ -96,12 +99,17 @@ def resolve_op_secret(ref):
         raise RuntimeError("1Password CLI 'op' is not installed or not in PATH")
         
     try:
-        res = subprocess.run(["op", "read", ref], capture_output=True, text=True, check=True)
+        cmd = ["op", "read", ref]
+        if account:
+            cmd.extend(["--account", account])
+
+        res = subprocess.run(cmd, capture_output=True, text=True, check=True)
         secret = res.stdout.strip()
-        OP_CACHE[ref] = secret
+        OP_CACHE[cache_key] = secret
         return secret
     except subprocess.CalledProcessError as e:
-        print(f"{Colors.RED}[Error]{Colors.END} Running 'op read {ref}': {e.stderr}", file=sys.stderr)
+        account_msg = f" --account {account}" if account else ""
+        print(f"{Colors.RED}[Error]{Colors.END} Running 'op read {ref}{account_msg}': {e.stderr}", file=sys.stderr)
         raise e
 
 def render_line(line, context):
@@ -730,6 +738,7 @@ def run_health_check(config, local_config, repo_dir):
                     "op_settings": ConfigObject(local_config.get("op", {})),
                     "op_use_one_password": local_config.get("op", {}).get("useOnePassword", False),
                     "op_git_signing_key_ref": local_config.get("op", {}).get("gitSigningKeyRef", ""),
+                    "op_account": local_config.get("op", {}).get("account", ""),
                     "op": lambda ref: f"<mock_op_secret_for_{ref}>",
                     "env": lambda k: f"<mock_env_{k}>",
                     "command_exists": lambda c: True,
@@ -827,6 +836,7 @@ def run_health_check(config, local_config, repo_dir):
                     "op_settings": ConfigObject(local_config.get("op", {})),
                     "op_use_one_password": local_config.get("op", {}).get("useOnePassword", False),
                     "op_git_signing_key_ref": local_config.get("op", {}).get("gitSigningKeyRef", ""),
+                    "op_account": local_config.get("op", {}).get("account", ""),
                     "op": lambda ref: f"<op_{ref}>",
                     "env": os.environ.get,
                     "command_exists": command_exists,
@@ -948,9 +958,11 @@ def init_wizard(repo_dir):
         use_op = use_op_str != 'n'
         
         op_ref = ""
+        op_account = ""
         if use_op:
             default_ref = "op://Private/hoh6xyfxtij4tth5pus7nnmrc4/public key"
             op_ref = input(f"1Password Signing Key Reference [{default_ref}]: ").strip() or default_ref
+            op_account = input("1Password Account (optional, e.g. DN67FSOAANHD5P2YMMKVMEM2TA): ").strip()
             
     except (KeyboardInterrupt, EOFError):
         print("\nAborted initialization.")
@@ -965,7 +977,8 @@ def init_wizard(repo_dir):
         },
         "op": {
             "useOnePassword": use_op,
-            "gitSigningKeyRef": op_ref
+            "gitSigningKeyRef": op_ref,
+            "account": op_account
         }
     }
 
@@ -977,7 +990,7 @@ def init_wizard(repo_dir):
         print(f"\n{Colors.RED}[Error]{Colors.END} Failed to write local settings: {e}", file=sys.stderr)
 
 def main():
-    global DRY_RUN
+    global DRY_RUN, OP_ACCOUNT
     parser = argparse.ArgumentParser(description="Manuel's Agentic Dotfiles Manager")
     parser.add_argument("-d", "--dry-run", action="store_true", help="Dry run mode. Show what would be done.")
     parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output.")
@@ -1042,6 +1055,8 @@ def main():
     if local_path.exists():
         local_config = load_config_file(local_path, repo_dir)
 
+    OP_ACCOUNT = local_config.get("op", {}).get("account") or os.environ.get("OP_ACCOUNT")
+
     if args.check:
         run_health_check(config, local_config, repo_dir)
         sys.exit(0)
@@ -1054,6 +1069,7 @@ def main():
         "op_settings": ConfigObject(local_config.get("op", {})),
         "op_use_one_password": local_config.get("op", {}).get("useOnePassword", False),
         "op_git_signing_key_ref": local_config.get("op", {}).get("gitSigningKeyRef", ""),
+        "op_account": local_config.get("op", {}).get("account", ""),
         "op": resolve_op_secret,
         "env": os.environ.get,
         "command_exists": command_exists,

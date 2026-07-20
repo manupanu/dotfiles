@@ -1,0 +1,13 @@
+{
+  "git": {
+    "name": "Your Name",
+    "email": "you@example.com",
+    "username": "your-github-username",
+    "signingKey": "ssh-ed25519 AAAA..."
+  },
+  "op": {
+    "useOnePassword": true,
+    "gitSigningKeyRef": "op://Private/your-item-id/public key",
+    "account": "AccountID/Shorthand"
+  }
+}

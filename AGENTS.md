@@ -21,7 +21,8 @@ The template context contains:
 - `git`: Local Git settings object (accessed via `git.name`, `git.email`, etc.).
 - `op_use_one_password`: Boolean indicating if 1Password is enabled.
 - `op_git_signing_key_ref`: 1Password reference string for the Git signing key.
-- `op(ref)`: Function that runs `op read ref` to resolve secrets dynamically.
+- `op_account`: Optional 1Password account shorthand/ID from local config.
+- `op(ref)`: Function that runs `op read ref` to resolve secrets dynamically (and adds `--account <op_account>` when configured).
 - `env(name)`: Function to lookup environment variables.
 
 ### Template Conditionals

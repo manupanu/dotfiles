@@ -109,6 +109,7 @@ The Python template context contains the following built-in helpers you can call
 - `quote(val)`: Safely escapes double-quotes and encloses the value in quotes.
   - *Example*: `name = {{ quote(git.name) }}`
 - `op("ref")`: Dynamically reads a secret from 1Password using the `op` CLI.
+  - If `op.account` is set in `dotfiles.local.json`, `madm.py` resolves secrets with `op read <ref> --account <account>`.
 - `env("VAR")`: Reads an environment variable.
 
 ### Windows UAC Elevation

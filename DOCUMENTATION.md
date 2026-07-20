@@ -117,7 +117,8 @@ This file is excluded from Git. It defines variables used during template render
   },
   "op": {
     "useOnePassword": true,
-    "gitSigningKeyRef": "op://Private/..."
+    "gitSigningKeyRef": "op://Private/...",
+    "account": "DN67FSOAANHD5P2YMMKVMEM2TA"
   }
 }
 ```
@@ -168,6 +169,7 @@ The following helpers are exposed to the template context:
 - `read_file("path")`: Reads and returns the contents of a file (path resolved relative to repository root).
 - `quote(value)`: Safely escapes double-quotes and encloses the string in quotes.
 - `op("ref")`: Reads a secret from 1Password using the `op` CLI.
+  - If `op.account` is configured, the command is executed as `op read <ref> --account <account>`.
   - *Note: During `--dry-run` or `--diff` runs, `op` calls are mocked to output `<1Password secret: ref>` to prevent connection stalls or login prompts.*
 
 ---
