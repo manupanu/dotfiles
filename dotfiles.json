@@ -86,6 +86,11 @@
       "path": "scripts/install-brew-packages.sh",
       "os": ["darwin"],
       "stage": "pre"
+    },
+    {
+      "path": "scripts/install-scoop-packages.ps1",
+      "os": ["windows"],
+      "stage": "pre"
     }
   ]
 }

@@ -1133,6 +1133,13 @@ def main():
 
     current_hostname = args.target_hostname or socket.gethostname().split('.')[0]
 
+    if current_os == "windows" and not os.environ.get("OneDrive") and os.environ.get("OneDriveCommercial"):
+        # Work-only OneDrive accounts only expose %OneDriveCommercial%; mappings that
+        # reference %OneDrive% would otherwise fail to expand on such machines.
+        os.environ["OneDrive"] = os.environ["OneDriveCommercial"]
+        if args.verbose:
+            print(f"{Colors.YELLOW}[Info]{Colors.END} %OneDrive% was unset; falling back to %OneDriveCommercial% ({os.environ['OneDrive']})")
+
     DRY_RUN = args.dry_run or args.diff
 
     if args.verbose:

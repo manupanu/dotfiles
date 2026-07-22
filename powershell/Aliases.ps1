@@ -15,37 +15,48 @@ function mkcd {
 }
 
 $Global:CdiRoots = [ordered]@{}
+$Global:CdiRootsInitialized = $false
 
-@(
-	@{ Name = 'home'; Path = $HOME },
-	@{ Name = 'docs'; Path = [Environment]::GetFolderPath('MyDocuments') },
-	@{ Name = 'desktop'; Path = [Environment]::GetFolderPath('Desktop') },
-	@{ Name = 'downloads'; Path = Join-Path $HOME 'Downloads' },
-	@{ Name = 'powershell'; Path = $PSScriptRoot },
-	@{ Name = 'projects'; Path = Join-Path $HOME 'Projects' },
-	@{ Name = 'repos'; Path = Join-Path $HOME 'Repos' },
-	@{ Name = 'source'; Path = Join-Path $HOME 'Source' },
-	@{ Name = 'dev'; Path = Join-Path $HOME 'Dev' }
-) | ForEach-Object {
-	if ($_.Path -and (Test-Path -LiteralPath $_.Path -PathType Container)) {
-		$Global:CdiRoots[$_.Name] = (Resolve-Path -LiteralPath $_.Path).Path
-	}
-}
+function Initialize-CdiRoots {
+	# Populating roots involves several Test-Path/Resolve-Path calls against
+	# OneDrive-hosted folders, which can be slow. Defer this work until `cdi`
+	# is actually used instead of paying for it on every shell launch.
+	if ($Global:CdiRootsInitialized) { return }
+	$Global:CdiRootsInitialized = $true
 
-foreach ($oneDriveRoot in @($env:OneDriveCommercial, $env:OneDrive)) {
-	if ($oneDriveRoot -and (Test-Path -LiteralPath $oneDriveRoot -PathType Container)) {
-		$Global:CdiRoots['onedrive'] = (Resolve-Path -LiteralPath $oneDriveRoot).Path
-
-		$oneDriveDocs = Join-Path $oneDriveRoot 'Documents'
-		if (Test-Path -LiteralPath $oneDriveDocs -PathType Container) {
-			$Global:CdiRoots['onedrive-docs'] = (Resolve-Path -LiteralPath $oneDriveDocs).Path
+	@(
+		@{ Name = 'home'; Path = $HOME },
+		@{ Name = 'docs'; Path = [Environment]::GetFolderPath('MyDocuments') },
+		@{ Name = 'desktop'; Path = [Environment]::GetFolderPath('Desktop') },
+		@{ Name = 'downloads'; Path = Join-Path $HOME 'Downloads' },
+		@{ Name = 'powershell'; Path = $PSScriptRoot },
+		@{ Name = 'projects'; Path = Join-Path $HOME 'Projects' },
+		@{ Name = 'repos'; Path = Join-Path $HOME 'Repos' },
+		@{ Name = 'source'; Path = Join-Path $HOME 'Source' },
+		@{ Name = 'dev'; Path = Join-Path $HOME 'Dev' }
+	) | ForEach-Object {
+		if ($_.Path -and (Test-Path -LiteralPath $_.Path -PathType Container)) {
+			$Global:CdiRoots[$_.Name] = (Resolve-Path -LiteralPath $_.Path).Path
 		}
-		break
+	}
+
+	foreach ($oneDriveRoot in @($env:OneDriveCommercial, $env:OneDrive)) {
+		if ($oneDriveRoot -and (Test-Path -LiteralPath $oneDriveRoot -PathType Container)) {
+			$Global:CdiRoots['onedrive'] = (Resolve-Path -LiteralPath $oneDriveRoot).Path
+
+			$oneDriveDocs = Join-Path $oneDriveRoot 'Documents'
+			if (Test-Path -LiteralPath $oneDriveDocs -PathType Container) {
+				$Global:CdiRoots['onedrive-docs'] = (Resolve-Path -LiteralPath $oneDriveDocs).Path
+			}
+			break
+		}
 	}
 }
 
 function cdi {
 	param([string]$Name)
+
+	Initialize-CdiRoots
 
 	if (-not $Name) {
 		if (Get-Command fzf -ErrorAction SilentlyContinue) {
@@ -91,6 +102,7 @@ function cdi {
 Register-ArgumentCompleter -CommandName cdi -ParameterName Name -ScriptBlock {
 	param($CommandName, $ParameterName, $WordToComplete)
 
+	Initialize-CdiRoots
 	$Global:CdiRoots.Keys |
 		Where-Object { $_ -like "$WordToComplete*" } |
 		ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $Global:CdiRoots[$_]) }

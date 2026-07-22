@@ -253,3 +253,8 @@ Run `python3 madm.py --restore` to launch the restore manager:
   - If a symlink fails with a `PermissionError`, the script checks if Developer Mode is disabled.
   - Prompts you to elevate to Administrator via UAC.
   - If accepted, re-launches the installer elevated. If rejected, safely falls back to copying the file.
+- **Tool bootstrap**: `scripts/install-scoop-packages.ps1` runs as a `pre`-stage, `windows`-only hook and installs `starship`, `zoxide`, `fzf`, `yazi`, `git`, and `gh` via `scoop` (adding the `extras` bucket for `yazi` if needed; skipped gracefully if `scoop` isn't available).
+- **PowerShell profile requires PowerShell 7+ (`pwsh`)**: the mapped profile path (`Documents\PowerShell\Microsoft.PowerShell_profile.ps1`) is the per-user profile location for `pwsh`, not Windows PowerShell 5.1 (`Documents\WindowsPowerShell\`).
+- **`%OneDrive%` resolution**: profile/alias mappings target `%OneDrive%\Documents\PowerShell\...`, which requires OneDrive installed, signed in, and Known Folder Move enabled for `Documents`. On machines where only a work/school account is present (`%OneDriveCommercial%` set but `%OneDrive%` unset), `madm.py` automatically falls back to `%OneDriveCommercial%` before expanding mapping destinations.
+- **Starship prompt**: the profile now calls `starship init powershell` (cached under `%LOCALAPPDATA%\PowerShellProfileCache`, same pattern as the `zoxide` init) before capturing `__BasePrompt`, so the custom venv-aware `prompt` function wraps the starship prompt instead of the plain PowerShell one.
+- **`y` (yazi) function** now checks `Get-Command yazi.exe` first and prints a friendly message instead of throwing if yazi isn't installed.
