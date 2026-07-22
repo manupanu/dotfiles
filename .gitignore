@@ -36,3 +36,4 @@ pi/agent/auth.json
 pi/pi-acp/
 pi/agent/bin/
 pi/context-mode/
+pi/agent/models-store.json
