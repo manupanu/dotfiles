@@ -79,6 +79,7 @@ This lists your timestamped backup directories stored in `.madm-backups/` and al
 | `--diff` | | Show unified, colorized diffs of file changes (implies dry-run). |
 | `--prune` | | Remove stale symlinks in target directories that point to this repository. |
 | `--interactive`| `-i` | Ask before overwriting target files that already exist (default: backup to `.madm-backups/`). |
+| `--no-clobber` | | Skip any mapping whose target already exists instead of backing it up or overwriting it. |
 | `--verbose` | `-v` | Enable detailed logging. |
 | `--no-color` | | Disable colorized terminal outputs. |
 | `--target-os` | | Override current operating system (darwin, linux, windows). |
@@ -110,7 +111,19 @@ The Python template context contains the following built-in helpers you can call
   - *Example*: `name = {{ quote(git.name) }}`
 - `op("ref")`: Dynamically reads a secret from 1Password using the `op` CLI.
   - If `op.account` is set in `dotfiles.local.json`, `madm.py` resolves secrets with `op read <ref> --account <account>`.
+- `secret("name")`: Resolves a secret through a pluggable provider (`op`, `pass`, or `env`) configured in a top-level `"secrets"` object in `dotfiles.json`/`dotfiles.local.json`:
+  ```json
+  { "secrets": { "github-token": "env", "ssh-passphrase": "pass" } }
+  ```
+  - *Example*: `{{ quote(secret("github-token")) }}`
 - `env("VAR")`: Reads an environment variable.
+
+### Ignore Patterns
+Add a top-level `"ignore"` array of glob patterns to `dotfiles.json` (and/or `dotfiles.local.json`) to skip specific mappings entirely across apply, `--prune`, and `--check`:
+```json
+{ "ignore": ["**/.DS_Store", "config/scratch/**"] }
+```
+Patterns are matched against both the repo-relative `src` and the home-relative `dst`, plus every parent subpath.
 
 ### Windows UAC Elevation
 If a symlink creation fails on Windows due to insufficient permissions (Developer Mode disabled), the script will prompt you to automatically escalate to Administrator via UAC.

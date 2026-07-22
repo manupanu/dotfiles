@@ -10,7 +10,8 @@ import re
 import subprocess
 import difflib
 import time
-from pathlib import Path
+import fnmatch
+from pathlib import Path, PurePosixPath
 
 # Cache resolved 1Password secrets
 OP_CACHE = {}
@@ -86,8 +87,8 @@ def quote_val(val):
     escaped = str(val).replace('"', '\\"')
     return f'"{escaped}"'
 
-def resolve_op_secret(ref):
-    account = OP_ACCOUNT or os.environ.get("OP_ACCOUNT")
+def resolve_op_secret(ref, account_override=None):
+    account = account_override or OP_ACCOUNT or os.environ.get("OP_ACCOUNT")
     cache_key = (account, ref)
     if cache_key in OP_CACHE:
         return OP_CACHE[cache_key]
@@ -111,6 +112,95 @@ def resolve_op_secret(ref):
         account_msg = f" --account {account}" if account else ""
         print(f"{Colors.RED}[Error]{Colors.END} Running 'op read {ref}{account_msg}': {e.stderr}", file=sys.stderr)
         raise e
+
+# ---------------------------------------------------------------------
+# Ignore patterns
+# ---------------------------------------------------------------------
+
+def _ignore_subpaths(path_str):
+    normalized = path_str.replace(os.sep, "/").strip("/")
+    if not normalized:
+        return []
+    parts = PurePosixPath(normalized).parts
+    return ["/".join(parts[:i]) for i in range(1, len(parts) + 1)]
+
+def path_matches_ignore(path_str, patterns):
+    if not patterns or not path_str:
+        return False
+    subpaths = _ignore_subpaths(path_str)
+    for pattern in patterns:
+        for sp in subpaths:
+            if fnmatch.fnmatch(sp, pattern):
+                return True
+    return False
+
+def is_ignored(src_rel, dst_rel, patterns):
+    if not patterns:
+        return False
+    return path_matches_ignore(src_rel, patterns) or path_matches_ignore(dst_rel, patterns)
+
+def mapping_dst_rel(dst_raw):
+    # Best-effort target-relative path (relative to home) for ignore matching.
+    dst_expanded = os.path.expanduser(os.path.expandvars(dst_raw))
+    dst_path = Path(dst_expanded).absolute()
+    try:
+        return dst_path.relative_to(Path.home()).as_posix()
+    except ValueError:
+        return dst_path.as_posix()
+
+# ---------------------------------------------------------------------
+# Secret providers
+# ---------------------------------------------------------------------
+
+SECRET_PROVIDERS = {}
+
+def register_secret_provider(name, fn):
+    SECRET_PROVIDERS[name] = fn
+
+def _provider_op(name, account=None):
+    ref = name if name.startswith("op://") else f"op://{name}"
+    return resolve_op_secret(ref, account_override=account)
+
+def _provider_pass(name, account=None):
+    if DRY_RUN:
+        return f"<pass secret: {name}>"
+    if not shutil.which("pass"):
+        raise RuntimeError("'pass' is not installed or not in PATH")
+    try:
+        res = subprocess.run(["pass", "show", name], capture_output=True, text=True, check=True)
+        return res.stdout.splitlines()[0].rstrip("\n") if res.stdout else ""
+    except subprocess.CalledProcessError as e:
+        print(f"{Colors.RED}[Error]{Colors.END} Running 'pass show {name}': {e.stderr}", file=sys.stderr)
+        raise e
+
+def _provider_env(name, account=None):
+    value = os.environ.get(name)
+    if value is None:
+        raise RuntimeError(f"Environment variable '{name}' is not set")
+    return value
+
+register_secret_provider("op", _provider_op)
+register_secret_provider("pass", _provider_pass)
+register_secret_provider("env", _provider_env)
+
+def resolve_secret(name, secrets_config, account=None):
+    provider_name = secrets_config.get(name)
+    if not provider_name:
+        raise RuntimeError(
+            f"No secret provider configured for '{name}'. Add it to the 'secrets' section of "
+            "dotfiles.json or dotfiles.local.json, e.g. \"secrets\": {\"" + name + "\": \"op\"}"
+        )
+    fn = SECRET_PROVIDERS.get(str(provider_name).lower())
+    if not fn:
+        known = ", ".join(sorted(SECRET_PROVIDERS)) or "none"
+        raise RuntimeError(f"Unknown secret provider '{provider_name}' for secret '{name}'. Known providers: {known}")
+    if DRY_RUN and provider_name.lower() != "op":
+        # op provider already handles DRY_RUN internally; mirror that behavior for others.
+        if provider_name.lower() == "pass":
+            return f"<pass secret: {name}>"
+        if provider_name.lower() == "env" and name not in os.environ:
+            return f"<env secret: {name}>"
+    return fn(name, account)
 
 def render_line(line, context):
     def repl(match):
@@ -220,9 +310,12 @@ def print_diff(dst_path, existing_content, new_content):
             sys.stdout.write(line)
     return has_diff
 
-def handle_conflict(dst_path, dry_run=False, interactive=False):
+def handle_conflict(dst_path, dry_run=False, interactive=False, no_clobber=False):
     if not dst_path.exists() and not dst_path.is_symlink():
         return 'overwrite'
+        
+    if no_clobber:
+        return 'skip'
         
     if not interactive:
         return 'backup'
@@ -327,7 +420,7 @@ def check_and_elevate_windows():
         except Exception as e:
             print(f"{Colors.RED}[Error]{Colors.END} Failed to request elevation: {e}", file=sys.stderr)
 
-def create_symlink(src_path, dst_path, repo_dir, dry_run=False, verbose=False, interactive=False, diff_mode=False):
+def create_symlink(src_path, dst_path, repo_dir, dry_run=False, verbose=False, interactive=False, diff_mode=False, no_clobber=False):
     has_changes = True
     existing_target = ""
     
@@ -353,7 +446,7 @@ def create_symlink(src_path, dst_path, repo_dir, dry_run=False, verbose=False, i
         print(f"{Colors.GREEN}+ New symlink target: {src_path}{Colors.END}")
         
     if not dry_run:
-        strategy = handle_conflict(dst_path, dry_run, interactive)
+        strategy = handle_conflict(dst_path, dry_run, interactive, no_clobber)
         if strategy == 'skip':
             print(f"  {Colors.YELLOW}[Skip]{Colors.END} Skipping mapping for {dst_path}")
             return True
@@ -375,13 +468,13 @@ def create_symlink(src_path, dst_path, repo_dir, dry_run=False, verbose=False, i
             if platform.system().lower() == "windows":
                 check_and_elevate_windows()
                 print(f"  {Colors.YELLOW}[Warning]{Colors.END} Symlink failed due to permissions. Attempting copy fallback on Windows...")
-                return copy_path(src_path, dst_path, repo_dir, dry_run, verbose, interactive, diff_mode)
+                return copy_path(src_path, dst_path, repo_dir, dry_run, verbose, interactive, diff_mode, no_clobber)
             else:
                 raise e
         except OSError as e:
             if platform.system().lower() == "windows":
                 print(f"  {Colors.YELLOW}[Warning]{Colors.END} Symlink failed: {e}. Attempting copy fallback on Windows...")
-                return copy_path(src_path, dst_path, repo_dir, dry_run, verbose, interactive, diff_mode)
+                return copy_path(src_path, dst_path, repo_dir, dry_run, verbose, interactive, diff_mode, no_clobber)
             else:
                 raise e
     else:
@@ -389,7 +482,7 @@ def create_symlink(src_path, dst_path, repo_dir, dry_run=False, verbose=False, i
             print(f"  {Colors.BOLD}[Dry Run]{Colors.END} Would link {dst_path} -> {src_path}")
     return True
 
-def copy_path(src_path, dst_path, repo_dir, dry_run=False, verbose=False, interactive=False, diff_mode=False):
+def copy_path(src_path, dst_path, repo_dir, dry_run=False, verbose=False, interactive=False, diff_mode=False, no_clobber=False):
     has_changes = True
     existing_content = ""
     new_content = ""
@@ -415,7 +508,7 @@ def copy_path(src_path, dst_path, repo_dir, dry_run=False, verbose=False, intera
         print_diff(dst_path, existing_content, new_content)
         
     if not dry_run:
-        strategy = handle_conflict(dst_path, dry_run, interactive)
+        strategy = handle_conflict(dst_path, dry_run, interactive, no_clobber)
         if strategy == 'skip':
             print(f"  {Colors.YELLOW}[Skip]{Colors.END} Skipping mapping for {dst_path}")
             return True
@@ -439,7 +532,7 @@ def copy_path(src_path, dst_path, repo_dir, dry_run=False, verbose=False, intera
             print(f"  {Colors.BOLD}[Dry Run]{Colors.END} Would copy {src_path} -> {dst_path}")
     return True
 
-def render_and_write_template(src_path, dst_path, variables, repo_dir, dry_run=False, verbose=False, interactive=False, diff_mode=False):
+def render_and_write_template(src_path, dst_path, variables, repo_dir, dry_run=False, verbose=False, interactive=False, diff_mode=False, no_clobber=False):
     with open(src_path, "r", encoding="utf-8") as f:
         template_content = f.read()
         
@@ -468,7 +561,7 @@ def render_and_write_template(src_path, dst_path, variables, repo_dir, dry_run=F
         print_diff(dst_path, existing_content, rendered)
         
     if not dry_run:
-        strategy = handle_conflict(dst_path, dry_run, interactive)
+        strategy = handle_conflict(dst_path, dry_run, interactive, no_clobber)
         if strategy == 'skip':
             print(f"  {Colors.YELLOW}[Skip]{Colors.END} Skipping mapping for {dst_path}")
             return True
@@ -490,7 +583,7 @@ def render_and_write_template(src_path, dst_path, variables, repo_dir, dry_run=F
             print(f"  {Colors.BOLD}[Dry Run]{Colors.END} Would render and write {dst_path}")
     return True
 
-def apply_mapping(mapping, variables, repo_dir, dry_run=False, verbose=False, interactive=False, diff_mode=False):
+def apply_mapping(mapping, variables, repo_dir, dry_run=False, verbose=False, interactive=False, diff_mode=False, no_clobber=False):
     src_rel = mapping["src"]
     dst_raw = mapping["dst"]
     op_type = mapping.get("type", "link")
@@ -508,11 +601,11 @@ def apply_mapping(mapping, variables, repo_dir, dry_run=False, verbose=False, in
         dst_path.parent.mkdir(parents=True, exist_ok=True)
         
     if op_type == "link":
-        return create_symlink(src_path, dst_path, repo_dir, dry_run, verbose, interactive, diff_mode)
+        return create_symlink(src_path, dst_path, repo_dir, dry_run, verbose, interactive, diff_mode, no_clobber)
     elif op_type == "copy":
-        return copy_path(src_path, dst_path, repo_dir, dry_run, verbose, interactive, diff_mode)
+        return copy_path(src_path, dst_path, repo_dir, dry_run, verbose, interactive, diff_mode, no_clobber)
     elif op_type == "template":
-        return render_and_write_template(src_path, dst_path, variables, repo_dir, dry_run, verbose, interactive, diff_mode)
+        return render_and_write_template(src_path, dst_path, variables, repo_dir, dry_run, verbose, interactive, diff_mode, no_clobber)
     else:
         print(f"{Colors.RED}[Error]{Colors.END} Unknown operation type '{op_type}' for mapping {src_rel} -> {dst_raw}", file=sys.stderr)
         return False
@@ -545,7 +638,8 @@ def run_script(script_path, dry_run=False):
         print(f"  {Colors.BOLD}[Dry Run]{Colors.END} Would execute: {' '.join(cmd)}")
     return True
 
-def prune_links(config, current_os, current_hostname, repo_dir, dry_run=False):
+def prune_links(config, current_os, current_hostname, repo_dir, dry_run=False, ignore_patterns=None):
+    ignore_patterns = ignore_patterns or []
     active_targets = set()
     all_mapped_dsts = []
     
@@ -567,6 +661,8 @@ def prune_links(config, current_os, current_hostname, repo_dir, dry_run=False):
                 continue
             if isinstance(m_host, list) and current_hostname not in m_host:
                 continue
+        if is_ignored(m["src"], mapping_dst_rel(m["dst"]), ignore_patterns):
+            continue
         active_targets.add(dst_path)
         
     parent_dirs = set()
@@ -706,7 +802,8 @@ def restore_backups(repo_dir):
     else:
         print(f"{Colors.YELLOW}[Warning]{Colors.END} Completed with some restore errors.")
 
-def run_health_check(config, local_config, repo_dir):
+def run_health_check(config, local_config, repo_dir, ignore_patterns=None):
+    ignore_patterns = ignore_patterns or []
     print(f"\n{Colors.BOLD}{Colors.CYAN}--- madm.py Health Check ---{Colors.END}\n")
     
     print(f"{Colors.BOLD}1. Validating Templates (Cross-Platform)...{Colors.END}")
@@ -714,6 +811,8 @@ def run_health_check(config, local_config, repo_dir):
     platforms = ["darwin", "linux", "windows"]
     
     for m in config.get("mappings", []):
+        if is_ignored(m["src"], mapping_dst_rel(m["dst"]), ignore_patterns):
+            continue
         if m.get("type") == "template":
             src_path = repo_dir / m["src"]
             if not src_path.exists():
@@ -740,6 +839,7 @@ def run_health_check(config, local_config, repo_dir):
                     "op_git_signing_key_ref": local_config.get("op", {}).get("gitSigningKeyRef", ""),
                     "op_account": local_config.get("op", {}).get("account", ""),
                     "op": lambda ref: f"<mock_op_secret_for_{ref}>",
+                    "secret": lambda name: f"<mock_secret_{name}>",
                     "env": lambda k: f"<mock_env_{k}>",
                     "command_exists": lambda c: True,
                     "read_file": lambda p: f"<mock_file_{p}>",
@@ -771,6 +871,8 @@ def run_health_check(config, local_config, repo_dir):
     
     sync_ok = True
     for m in config.get("mappings", []):
+        if is_ignored(m["src"], mapping_dst_rel(m["dst"]), ignore_patterns):
+            continue
         m_os = m.get("os")
         m_host = m.get("hostname")
         if m_os:
@@ -997,6 +1099,7 @@ def main():
     parser.add_argument("--diff", action="store_true", help="Show unified diffs of changes (implies dry-run).")
     parser.add_argument("--prune", action="store_true", help="Prune dead symlinks pointing to this repo.")
     parser.add_argument("-i", "--interactive", action="store_true", help="Prompt before overwriting existing files.")
+    parser.add_argument("--no-clobber", action="store_true", help="Skip any mapping whose target already exists instead of backing it up or overwriting it.")
     parser.add_argument("--init", action="store_true", help="Initialize local settings file interactively.")
     parser.add_argument("--check", action="store_true", help="Run system status checks and validate templates.")
     parser.add_argument("--restore", action="store_true", help="Restore centralized backup folder.")
@@ -1046,8 +1149,13 @@ def main():
         sys.exit(1)
 
     if args.prune:
+        local_config = {}
+        local_path = repo_dir / "dotfiles.local.json"
+        if local_path.exists():
+            local_config = load_config_file(local_path, repo_dir)
+        ignore_patterns = config.get("ignore", []) + local_config.get("ignore", [])
         print(f"Pruning dead symlinks for OS={current_os}, Hostname={current_hostname}...")
-        prune_links(config, current_os, current_hostname, repo_dir, dry_run=DRY_RUN)
+        prune_links(config, current_os, current_hostname, repo_dir, dry_run=DRY_RUN, ignore_patterns=ignore_patterns)
         sys.exit(0)
 
     local_config = {}
@@ -1057,8 +1165,14 @@ def main():
 
     OP_ACCOUNT = local_config.get("op", {}).get("account") or os.environ.get("OP_ACCOUNT")
 
+    secrets_config = {}
+    secrets_config.update(config.get("secrets", {}))
+    secrets_config.update(local_config.get("secrets", {}))
+
+    ignore_patterns = config.get("ignore", []) + local_config.get("ignore", [])
+
     if args.check:
-        run_health_check(config, local_config, repo_dir)
+        run_health_check(config, local_config, repo_dir, ignore_patterns=ignore_patterns)
         sys.exit(0)
 
     context = {
@@ -1071,6 +1185,7 @@ def main():
         "op_git_signing_key_ref": local_config.get("op", {}).get("gitSigningKeyRef", ""),
         "op_account": local_config.get("op", {}).get("account", ""),
         "op": resolve_op_secret,
+        "secret": lambda name: resolve_secret(name, secrets_config, OP_ACCOUNT),
         "env": os.environ.get,
         "command_exists": command_exists,
         "read_file": lambda p: read_file_content(p, repo_dir),
@@ -1078,7 +1193,7 @@ def main():
     }
     
     for k, v in local_config.items():
-        if k not in ["git", "op"]:
+        if k not in ["git", "op", "secrets"]:
             context[k] = ConfigObject(v) if isinstance(v, dict) else v
 
     scripts = config.get("scripts", [])
@@ -1123,12 +1238,17 @@ def main():
             if isinstance(m_host, list) and current_hostname not in m_host:
                 continue
 
+        if is_ignored(m["src"], mapping_dst_rel(m["dst"]), ignore_patterns):
+            if args.verbose:
+                print(f"  {Colors.YELLOW}[Ignore]{Colors.END} Skipping {m['src']} -> {m['dst']} (matched ignore pattern)")
+            continue
+
         m_resolved = m.copy()
         m_resolved["src"] = str(repo_dir / m["src"])
         
         if args.verbose:
             print(f"Processing: {m['src']} -> {m['dst']}")
-        if not apply_mapping(m_resolved, context, repo_dir, dry_run=DRY_RUN, verbose=args.verbose, interactive=args.interactive, diff_mode=args.diff):
+        if not apply_mapping(m_resolved, context, repo_dir, dry_run=DRY_RUN, verbose=args.verbose, interactive=args.interactive, diff_mode=args.diff, no_clobber=args.no_clobber):
             print(f"{Colors.RED}[Error]{Colors.END} Applying mapping: {m['src']} -> {m['dst']}", file=sys.stderr)
             success = False
 

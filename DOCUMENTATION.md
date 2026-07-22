@@ -44,6 +44,7 @@ Execute the manager using `python3 madm.py [flags]`.
 | `--diff` | | Prints a unified colorized diff showing planned changes (implies dry-run). |
 | `--prune` | | Scans target directories and removes stale symlinks pointing to the repository. |
 | `--interactive`| `-i` | Prompts you before overwriting existing destination files. |
+| `--no-clobber` | | Skips any mapping whose target already exists instead of backing it up or overwriting it. |
 | `--verbose` | `-v` | Prints extra debug information, such as skipped files. |
 | `--no-color` | | Disables ANSI coloring in logs. |
 | `--target-os` | | Overrides the current OS detection (`darwin`, `linux`, `windows`) for testing. |
@@ -85,7 +86,15 @@ The core configuration maps sources in the repository to target files in the fil
       "os": "darwin",
       "stage": "post"
     }
-  ]
+  ],
+  "ignore": [
+    "**/.DS_Store",
+    "config/scratch/**"
+  ],
+  "secrets": {
+    "github-token": "env",
+    "ssh-passphrase": "pass"
+  }
 }
 ```
 
@@ -101,6 +110,16 @@ The core configuration maps sources in the repository to target files in the fil
 - `os` (string/list, optional): Restricts execution to matching operating systems.
 - `hostname` (string/list, optional): Restricts execution to matching hostnames.
 - `stage` (string, optional): One of `"pre"` (runs before mappings) or `"post"` (default, runs after mappings).
+
+#### Top-level `ignore` (list of glob patterns, optional):
+- Any mapping whose `src` (repo-relative) or `dst` (relative to the target home directory) matches one of these glob patterns is skipped entirely during apply, prune, and `--check`.
+- Patterns are matched against the full path and every parent subpath, so `"config/scratch/**"` matches anything under `config/scratch/`, while `"**/.DS_Store"` matches a `.DS_Store` file at any depth.
+- `ignore` entries from `dotfiles.json` and `dotfiles.local.json` are combined.
+
+#### Top-level `secrets` (object, optional):
+- Maps a secret name to the provider used to resolve it: `"op"` (1Password CLI), `"pass"` (the `pass` password manager), or `"env"` (an environment variable).
+- Templates reference the value with the `secret("NAME")` helper (see §4.2). This is distinct from the existing `op("ref")` helper, which always reads directly from 1Password using a full `op://...` reference.
+- Entries in `dotfiles.local.json` override/extend entries in `dotfiles.json`, so provider mappings can be kept out of version control if desired.
 
 ---
 
@@ -171,6 +190,10 @@ The following helpers are exposed to the template context:
 - `op("ref")`: Reads a secret from 1Password using the `op` CLI.
   - If `op.account` is configured, the command is executed as `op read <ref> --account <account>`.
   - *Note: During `--dry-run` or `--diff` runs, `op` calls are mocked to output `<1Password secret: ref>` to prevent connection stalls or login prompts.*
+- `secret("NAME")`: Resolves a secret through the provider configured for `NAME` in the top-level `secrets` section of `dotfiles.json`/`dotfiles.local.json` (§3.1).
+  - Supported providers: `"op"` (calls `op read op://NAME`, or `op://NAME` as-is if already prefixed), `"pass"` (calls `pass show NAME`), `"env"` (reads the environment variable `NAME`).
+  - Raises a clear error if `NAME` has no provider configured, or if the provider itself fails (missing CLI, unset variable, etc).
+  - *Note: During `--dry-run`/`--diff`, `pass`/`env` providers are mocked the same way `op` is, to avoid unwanted side effects.*
 
 ---
 

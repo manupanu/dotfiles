@@ -61,6 +61,24 @@
       "src": "pi",
       "dst": "~/.pi",
       "type": "link"
+    },
+    {
+      "src": "powershell/Microsoft.PowerShell_profile.ps1",
+      "dst": "%OneDrive%\\Documents\\PowerShell\\Microsoft.PowerShell_profile.ps1",
+      "type": "link",
+      "os": ["windows"]
+    },
+    {
+      "src": "powershell/Aliases.ps1",
+      "dst": "%OneDrive%\\Documents\\PowerShell\\Aliases.ps1",
+      "type": "link",
+      "os": ["windows"]
+    },
+    {
+      "src": "powershell/powershell.config.json",
+      "dst": "%OneDrive%\\Documents\\PowerShell\\powershell.config.json",
+      "type": "copy",
+      "os": ["windows"]
     }
   ],
   "scripts": [

@@ -9,5 +9,10 @@
     "useOnePassword": true,
     "gitSigningKeyRef": "op://Private/your-item-id/public key",
     "account": "AccountID/Shorthand"
-  }
+  },
+  "secrets": {
+    "github-token": "env",
+    "ssh-passphrase": "pass"
+  },
+  "ignore": []
 }

@@ -1,7 +1,7 @@
 {
-  "defaultProvider": "opencode-go",
-  "defaultModel": "deepseek-v4-flash",
-  "defaultThinkingLevel": "max",
+  "defaultProvider": "github-copilot",
+  "defaultModel": "claude-sonnet-5",
+  "defaultThinkingLevel": "medium",
   "packages": [
     "npm:@juicesharp/rpiv-ask-user-question",
     "npm:@juicesharp/rpiv-web-tools",
@@ -11,7 +11,7 @@
     "npm:context-mode"
   ],
   "theme": "catppuccin-mocha",
-  "lastChangelogVersion": "0.80.10",
+  "lastChangelogVersion": "0.81.1",
   "quietStartup": true,
   "enabledModels": [
     "opencode-go/deepseek-v4-flash",
