@@ -36,10 +36,25 @@ chezmoi cd                  # open a shell in the source directory (~/.dotfiles)
 chezmoi status              # show managed files that differ from the source state
 ```
 
+## Symlink mode
+
+`mode = "symlink"` is set in `.chezmoi.toml.tmpl`, so plain (non-template)
+managed files are deployed as real symlinks in the home directory pointing
+back into `~/.dotfiles`, instead of being copied. This means edits made
+directly to a symlinked target file (e.g. `~/.ssh/config`) go straight into
+the source repo — no `chezmoi apply` needed for those files.
+
+Files that use templating (e.g. `dot_gitconfig.tmpl`, which computes
+name/email/GPG settings per machine) are **not** affected — chezmoi always
+renders `.tmpl` files as regular files, since a symlink can't support
+per-machine templated content.
+
 ## Notes
 
 - Do **not** run `chezmoi add` on chezmoi's own config file
   (`~/.config/chezmoi/chezmoi.toml`) — chezmoi refuses this by design, since
   it needs that file to locate the source directory in the first place.
+- `README.md` and `.chezmoiignore` itself are excluded from deployment via
+  `.chezmoiignore` — they're repo housekeeping, not dotfiles.
 - Source directory: `~/.dotfiles`
-- Config template: `.chezmoi.toml.tmpl` (sets `sourceDir`)
+- Config template: `.chezmoi.toml.tmpl` (sets `sourceDir` and `mode`)
