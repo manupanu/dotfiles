@@ -1,0 +1,14 @@
+[user]
+	name = Manuel Anrig
+	email = me@manuelanrig.ch
+	signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF5pT06+3YIjr2AsW0X6YMnboBtk8f9Ho/w7DJhYvt27
+[gpg]
+	format = ssh
+[gpg "ssh"]
+	{{ if eq .chezmoi.os "windows" }}
+	program = C:\\Users\\manrig\\AppData\\Local\\Microsoft\\WindowsApps\\op-ssh-sign.exe
+	{{ else if eq .chezmoi.os "linux" }}
+	{{ else if eq .chezmoi.os "darwin" }}
+	{{ end }}
+[commit]
+	gpgsign = true
