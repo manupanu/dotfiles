@@ -1,2 +1,13 @@
+{{- $work := promptBoolOnce . "work" "Is this a work machine" -}}
 sourceDir = "{{ .chezmoi.homeDir }}/.dotfiles"
 mode = "symlink"
+
+[data]
+    name = "Manuel Anrig"
+    hostname= "{{ .chezmoi.hostname }}"
+    work = {{ $work }}
+    {{- if $work }}
+    email = "manuel.anrig@specialized.com"
+    {{- else }}
+    email = "me@manuelanrig.ch"
+    {{- end }}
