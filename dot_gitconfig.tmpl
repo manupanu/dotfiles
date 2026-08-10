@@ -8,7 +8,12 @@
 	{{ if eq .chezmoi.os "windows" }}
 	program = C:\\Users\\manrig\\AppData\\Local\\Microsoft\\WindowsApps\\op-ssh-sign.exe
 	{{ else if eq .chezmoi.os "linux" }}
+	##Linux
+	{{   if (.chezmoi.kernel.osrelease | lower | contains "microsoft") }}
+	##WSL
+	{{   end }}
 	{{ else if eq .chezmoi.os "darwin" }}
+	##MACOS
 	{{ end }}
 [commit]
 	gpgsign = true
