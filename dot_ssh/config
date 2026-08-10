@@ -1,0 +1,5 @@
+# Read more about SSH config files: https://linux.die.net/man/5/ssh_config
+Host ch-testlab-rn01
+    HostName 10.60.10.64
+    User testlab
+    ForwardAgent yes
