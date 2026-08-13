@@ -3,3 +3,8 @@ Host ch-testlab-rn01
     HostName 10.60.10.64
     User testlab
     ForwardAgent yes
+    
+Host ch-testlab-nb02
+    HostName 10.60.10.161
+    User manuel
+    ForwardAgent yes

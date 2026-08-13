@@ -6,7 +6,7 @@
 	format = ssh
 [gpg "ssh"]
 	{{- if eq .chezmoi.os "windows" }}
-	program = C:\\Users\\manrig\\AppData\\Local\\Microsoft\\WindowsApps\\op-ssh-sign.exe
+	program = C:/Users/manrig/AppData/Local/Microsoft/WindowsApps/op-ssh-sign.exe
 	{{- else if eq .chezmoi.os "linux" }}
 	##Linux
 	{{-   if (.chezmoi.kernel.osrelease | lower | contains "microsoft") }}
@@ -19,3 +19,9 @@
 	gpgsign = true
 [init]
 	defaultBranch = "main"
+[url "git@github.com:"]
+	insteadOf = https://github.com/
+{{- if eq .chezmoi.os "windows" }}
+[core]
+  sshCommand = C:/Windows/System32/OpenSSH/ssh.exe
+{{- end }}
