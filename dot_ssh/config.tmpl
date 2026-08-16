@@ -1,4 +1,9 @@
 # Read more about SSH config files: https://linux.die.net/man/5/ssh_config
+{{- if eq .chezmoi.os "linux" }}
+Host *
+    IdentityAgent ~/.1password/agent.sock
+{{- end }}
+{{- if .work }}
 Host ch-testlab-rn01
     HostName 10.60.10.64
     User testlab
@@ -8,3 +13,4 @@ Host ch-testlab-nb02
     HostName 10.60.10.161
     User manuel
     ForwardAgent yes
+{{- end}}
