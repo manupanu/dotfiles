@@ -8,12 +8,12 @@
 	{{- if eq .chezmoi.os "windows" }}
 	program = C:/Users/manrig/AppData/Local/Microsoft/WindowsApps/op-ssh-sign.exe
 	{{- else if eq .chezmoi.os "linux" }}
-	##Linux
+	program = /opt/1Password/op-ssh-sign
 	{{-   if (.chezmoi.kernel.osrelease | lower | contains "microsoft") }}
 	##WSL
 	{{-   end }}
 	{{- else if eq .chezmoi.os "darwin" }}
-	##MACOS
+	program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
 	{{- end }}
 [commit]
 	gpgsign = true
@@ -23,5 +23,5 @@
 	insteadOf = https://github.com/
 {{- if eq .chezmoi.os "windows" }}
 [core]
-  sshCommand = C:/Windows/System32/OpenSSH/ssh.exe
+  sshCommand = ssh.exe
 {{- end }}
