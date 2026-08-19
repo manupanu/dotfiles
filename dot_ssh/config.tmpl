@@ -4,10 +4,25 @@ Host *
     IdentityAgent ~/.1password/agent.sock
 {{- end }}
 {{- if .work }}
+Host nl-testlabsvr02
+    HostName 10.65.14.123
+    User swiss
+    ForwardAgent yes
+
 Host ch-testlab-rn01
     HostName 10.60.10.64
     User testlab
     ForwardAgent yes
+
+Host ch-testlab-rn02
+    HostName 10.60.10.59
+    User testlab
+    ForwardAgent yes
+
+Host ch-testlab-nb01
+    HostName 10.60.10.161
+    User manuel
+    ForwardAgent yes    
     
 Host ch-testlab-nb02
     HostName 10.60.10.161
