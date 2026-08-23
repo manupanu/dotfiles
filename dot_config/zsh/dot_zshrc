@@ -1,0 +1,17 @@
+# Main Zsh entrypoint (~/.config/zsh/.zshrc)
+ZSH_CONFIG="${ZDOTDIR:-$HOME/.config/zsh}"
+
+# Core environment, options, plugins, and general aliases
+[[ -f "$ZSH_CONFIG/env.zsh" ]] && source "$ZSH_CONFIG/env.zsh"
+[[ -f "$ZSH_CONFIG/options.zsh" ]] && source "$ZSH_CONFIG/options.zsh"
+[[ -f "$ZSH_CONFIG/plugins.zsh" ]] && source "$ZSH_CONFIG/plugins.zsh"
+[[ -f "$ZSH_CONFIG/aliases.zsh" ]] && source "$ZSH_CONFIG/aliases.zsh"
+
+# OS-specific module
+case "$OSTYPE" in
+  linux*)  [[ -f "$ZSH_CONFIG/os/linux.zsh" ]] && source "$ZSH_CONFIG/os/linux.zsh" ;;
+  darwin*) [[ -f "$ZSH_CONFIG/os/darwin.zsh" ]] && source "$ZSH_CONFIG/os/darwin.zsh" ;;
+esac
+
+# Interactive prompt & navigation tools
+[[ -f "$ZSH_CONFIG/tools.zsh" ]] && source "$ZSH_CONFIG/tools.zsh"
