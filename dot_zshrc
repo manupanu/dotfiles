@@ -1,0 +1,91 @@
+# User-managed Zsh configuration. CachyOS's shared configuration is not sourced.
+# User-installed executables.
+export PATH="$HOME/.local/bin:$PATH"
+
+[[ -o interactive ]] || return
+
+# History: ignore leading-space commands and duplicates, share commands promptly
+# between open shells, and retain a useful long history.
+HISTFILE="${ZDOTDIR:-$HOME}/.zsh_history"
+HISTSIZE=50000
+SAVEHIST=50000
+setopt append_history share_history hist_ignore_space hist_ignore_dups hist_expire_dups_first hist_save_no_dups hist_reduce_blanks hist_verify
+
+# Preserve CachyOS's useful history exclusions using Zsh's native hook.
+zshaddhistory() {
+  local command=${1%%$'\n'}
+  case "$command" in
+    '&'|bg|fg|c|clear|history|exit|q|pwd|*' --help') return 1 ;;
+  esac
+  return 0
+}
+
+# Readable man-page emphasis.
+export LESS_TERMCAP_md="$(tput bold 2>/dev/null; tput setaf 2 2>/dev/null)"
+export LESS_TERMCAP_me="$(tput sgr0 2>/dev/null)"
+
+# Existing user tools.
+export PATH="$HOME/.bun/bin:$PATH"
+export FZF_BASE=/usr/share/fzf
+
+# CachyOS convenience aliases.
+alias make='make -j$(nproc)'
+alias ninja='ninja -j$(nproc)'
+alias n='ninja'
+alias c='clear'
+alias rmpkg='sudo pacman -Rsn'
+alias cleanch='sudo pacman -Scc'
+alias fixpacman='sudo rm /var/lib/pacman/db.lck'
+alias update='sudo pacman -Syu'
+alias apt='man pacman'
+alias apt-get='man pacman'
+alias please='sudo'
+alias jctl='journalctl -p 3 -xb'
+alias rip="expac --timefmt='%Y-%m-%d %T' '%l\\t%n %v' | sort | tail -200 | nl"
+
+# Safely remove orphaned packages; this replaces CachyOS's unsafe empty-list alias.
+cleanup() {
+  local -a orphans
+  orphans=("${(@f)$(pacman -Qtdq 2>/dev/null)}")
+  if (( ${#orphans[@]} )); then
+    sudo pacman -Rsn -- "${orphans[@]}"
+  else
+    print 'No orphaned packages found.'
+  fi
+}
+
+# Arch's command-not-found handler, when pkgfile is installed.
+[[ -r /usr/share/doc/pkgfile/command-not-found.zsh ]] && source /usr/share/doc/pkgfile/command-not-found.zsh
+
+# Build a static Antidote bundle only when the plugin manifest changes. The
+# generated file loads quickly in each new interactive shell.
+zsh_plugins="${ZDOTDIR:-$HOME}/.zsh_plugins"
+zsh_plugins_txt="${zsh_plugins}.txt"
+zsh_plugins_static="${zsh_plugins}.zsh"
+if [[ ! "$zsh_plugins_static" -nt "$zsh_plugins_txt" ]]; then
+  source "${ZDOTDIR:-$HOME}/.antidote/antidote.zsh"
+  antidote bundle <"$zsh_plugins_txt" >"$zsh_plugins_static"
+fi
+source "$zsh_plugins_static"
+unset zsh_plugins zsh_plugins_txt zsh_plugins_static
+
+# Yazi wrapper: `y` changes this shell's directory to Yazi's last directory.
+y() {
+  local tmp cwd
+  tmp="$(mktemp -t 'yazi-cwd.XXXXXX')"
+  command yazi "$@" --cwd-file="$tmp"
+  IFS= read -r -d '' cwd < "$tmp"
+  [[ "$cwd" != "$PWD" && -d "$cwd" ]] && builtin cd -- "$cwd"
+  command rm -f -- "$tmp"
+}
+
+# Smarter directory navigation. `z <query>` jumps by frecency and `zi` opens
+# its interactive fzf picker.
+eval "$(zoxide init zsh)"
+
+# Starship replaces Powerlevel10k.
+eval "$(starship init zsh)"
+
+
+# Added by Antigravity CLI installer
+export PATH="/home/manuel/.local/bin:$PATH"

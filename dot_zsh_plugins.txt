@@ -1,0 +1,16 @@
+# Antidote plugin bundles. Keep syntax highlighting last.
+# Completion and navigation
+mattmc3/ez-compinit
+zsh-users/zsh-completions kind:fpath path:src
+Aloxaf/fzf-tab
+
+# Useful Oh My Zsh plugins previously supplied by CachyOS
+getantidote/use-omz
+ohmyzsh/ohmyzsh path:plugins/git
+ohmyzsh/ohmyzsh path:plugins/fzf
+ohmyzsh/ohmyzsh path:plugins/extract
+
+# Fish-like shell features
+zsh-users/zsh-autosuggestions
+zsh-users/zsh-history-substring-search
+zsh-users/zsh-syntax-highlighting
