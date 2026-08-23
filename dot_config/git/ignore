@@ -1,0 +1,36 @@
+# macOS noise
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows noise
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux noise
+*~
+.directory
+.fuse_hidden*
+
+# Editor & IDE noise
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.swp
+*.swo
+*.kate-swp
+
+# Tool artifacts & local overrides
+.direnv/
+.env.local
+.env.*.local
+*.log
