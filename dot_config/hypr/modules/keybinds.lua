@@ -12,7 +12,6 @@ hl.bind(mainMod .. " + E",      hl.dsp.exec_cmd(fileManager))
 hl.bind(mainMod .. " + Q",      hl.dsp.window.close())
 
 -- Windows & Layouts
-hl.bind(mainMod .. " + C", hl.dsp.window.close())
 hl.bind(mainMod .. " + T", hl.dsp.window.float({ action = "toggle" }))
 hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen({ action = "toggle", mode = "fullscreen" }))
 hl.bind(mainMod .. " + P", hl.dsp.window.pseudo())
