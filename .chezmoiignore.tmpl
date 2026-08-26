@@ -1,5 +1,19 @@
 README.md
 
+{{ if ne .chezmoi.os "linux" }}
+# Linux-only Desktop, Window Manager, and GTK configs
+.config/hypr
+.config/hypr/**
+.config/gtk-3.0
+.config/gtk-3.0/**
+.config/gtk-4.0
+.config/gtk-4.0/**
+.config/paru
+.config/paru/**
+.icons
+.icons/**
+{{ end }}
+
 {{ if eq .chezmoi.os "windows" }}
 # Unix-only shells and terminal emulators
 .zshenv
@@ -7,6 +21,4 @@ README.md
 .config/zsh/**
 .config/kitty
 .config/kitty/**
-.config/paru
-.config/paru/**
 {{ end }}

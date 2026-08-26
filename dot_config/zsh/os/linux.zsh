@@ -1,6 +1,7 @@
 # Linux & Arch / CachyOS specific configurations
 
 export FZF_BASE=/usr/share/fzf
+export SSH_AUTH_SOCK=~/.1password/agent.sock
 
 # Package management & system aliases
 alias update='sudo pacman -Syu'

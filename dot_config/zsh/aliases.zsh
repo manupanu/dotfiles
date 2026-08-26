@@ -24,3 +24,7 @@ y() {
   [[ "$cwd" != "$PWD" && -d "$cwd" ]] && builtin cd -- "$cwd"
   command rm -f -- "$tmp"
 }
+
+# Antigravity CLI
+alias agy='agy --dangerously-skip-permissions'
+alias antigravity='agy --dangerously-skip-permissions'

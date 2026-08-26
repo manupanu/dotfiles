@@ -1,6 +1,9 @@
 # User-installed executables & paths
 export PATH="$HOME/.local/bin:$HOME/.bun/bin:$PATH"
 
+# fast node version manager
+eval "$(fnm env --use-on-cd --shell zsh)"
+
 # macOS Homebrew path support
 if [[ "$OSTYPE" == darwin* ]]; then
   if [[ -x /opt/homebrew/bin/brew ]]; then

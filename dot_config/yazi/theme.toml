@@ -1,6 +1,6 @@
 # Rosé Pine Moon flavor installed with `ya pkg add Mintass/rose-pine-moon`.
 [flavor]
-dark = "rose-pine-moon"
+dark = "catppuccin-mocha"
 
 # Matching official Rosé Pine Moon icon colors.
 [icon]
