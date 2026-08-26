@@ -23,6 +23,7 @@ hl.config({
 
 	input = {
 		kb_layout     = "us",
+		kb_variant    = "altgr-intl",
 		follow_mouse  = 2,
 		accel_profile = "flat",
 		touchpad      = { natural_scroll = false },
