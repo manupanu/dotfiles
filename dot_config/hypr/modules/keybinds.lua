@@ -18,6 +18,10 @@ hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen({ action = "toggle", mode = 
 hl.bind(mainMod .. " + P", hl.dsp.window.pseudo())
 hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit"))
 
+-- Voice Dictation (Voxtype)
+hl.bind(mainMod .. " + less", hl.dsp.exec_cmd("voxtype record toggle"))
+
+
 -- Noctalia Panels & Surfaces
 hl.bind(mainMod .. " + Space",         hl.dsp.exec_cmd(ipc .. "panel-toggle launcher"))
 hl.bind(mainMod .. " + S",             hl.dsp.exec_cmd(ipc .. "panel-toggle control-center"))
