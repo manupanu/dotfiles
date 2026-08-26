@@ -22,11 +22,14 @@ hl.config({
 	},
 
 	input = {
-		kb_layout     = "us",
-		kb_variant    = "altgr-intl",
-		follow_mouse  = 2,
-		accel_profile = "flat",
-		touchpad      = { natural_scroll = false },
+		kb_layout          = "us",
+		kb_variant         = "altgr-intl",
+		repeat_delay       = 300,
+		repeat_rate        = 50,
+		numlock_by_default = true,
+		follow_mouse       = 2,
+		accel_profile      = "flat",
+		touchpad           = { natural_scroll = false },
 	},
 
 	dwindle = { preserve_split = true },

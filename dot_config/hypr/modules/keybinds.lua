@@ -13,7 +13,7 @@ hl.bind(mainMod .. " + Q",      hl.dsp.window.close())
 
 -- Windows & Layouts
 hl.bind(mainMod .. " + C", hl.dsp.window.close())
-hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }))
+hl.bind(mainMod .. " + T", hl.dsp.window.float({ action = "toggle" }))
 hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen({ action = "toggle", mode = "fullscreen" }))
 hl.bind(mainMod .. " + P", hl.dsp.window.pseudo())
 hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit"))
@@ -24,6 +24,7 @@ hl.bind(mainMod .. " + BACKSLASH", hl.dsp.exec_cmd("voxtype record toggle"))
 
 -- Noctalia Panels & Surfaces
 hl.bind(mainMod .. " + Space",         hl.dsp.exec_cmd(ipc .. "panel-toggle launcher"))
+hl.bind(mainMod .. " + V",             hl.dsp.exec_cmd(ipc .. "panel-toggle clipboard"))
 hl.bind(mainMod .. " + S",             hl.dsp.exec_cmd(ipc .. "panel-toggle control-center"))
 hl.bind(mainMod .. " + comma",         hl.dsp.exec_cmd(ipc .. "settings-toggle"))
 hl.bind("ALT + Tab",                   hl.dsp.exec_cmd(ipc .. "window-switcher"))
