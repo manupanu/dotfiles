@@ -19,7 +19,7 @@ hl.bind(mainMod .. " + P", hl.dsp.window.pseudo())
 hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit"))
 
 -- Voice Dictation (Voxtype)
-hl.bind(mainMod .. " + less", hl.dsp.exec_cmd("voxtype record toggle"))
+hl.bind(mainMod .. " + BACKSLASH", hl.dsp.exec_cmd("voxtype record toggle"))
 
 
 -- Noctalia Panels & Surfaces
