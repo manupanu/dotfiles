@@ -19,6 +19,15 @@ hl.on("hyprland.start", function()
 	-- 1Password background agent
 	hl.exec_cmd("sh -c 'sleep 3 && exec 1password --silent'")
 
+	-- OpenDeck background agent (start minimized to tray)
+	hl.exec_cmd("opendeck --hide")
+
+	-- Nextcloud desktop client (start minimized to tray)
+	hl.exec_cmd("nextcloud --background")
+
+	-- Voxtype voice-to-text daemon
+	hl.exec_cmd("systemctl --user start voxtype.service")
+
 	-- Set cursor theme
 	hl.exec_cmd("hyprctl setcursor Bibata-Modern-Ice 24")
 end)
