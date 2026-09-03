@@ -1,6 +1,9 @@
 # User-installed executables & paths
 export PATH="$HOME/.local/bin:$HOME/.bun/bin:$PATH"
 
+# Rust & Cargo
+[[ -f "$HOME/.cargo/env" ]] && . "$HOME/.cargo/env"
+
 # fast node version manager
 eval "$(fnm env --use-on-cd --shell zsh)"
 
