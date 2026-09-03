@@ -1,11 +1,8 @@
 # Read more about SSH config files: https://linux.die.net/man/5/ssh_config
 {{- if eq .chezmoi.os "darwin" }}
-# Added by OrbStack: 'orb' SSH host for Linux machines
-# This only works if it's at the top of ssh_config (before any Host blocks).
 Include ~/.orbstack/ssh/config
 Host *
 	IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
-
 {{- end }}
 {{- if eq .chezmoi.os "linux" }}
 Host *
