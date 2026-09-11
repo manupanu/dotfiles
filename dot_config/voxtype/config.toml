@@ -1,0 +1,57 @@
+# Voxtype Configuration (~/.config/voxtype/config.toml)
+# Managed via dotfiles / chezmoi
+
+engine = "whisper"
+
+# Required for external status bar integrations (Noctalia bar, status command)
+# Writes daemon state ("idle", "recording", "transcribing") to $XDG_RUNTIME_DIR/voxtype/state
+state_file = "auto"
+
+[whisper]
+# Use Groq's OpenAI-compatible Whisper API
+mode = "remote"
+remote_endpoint = "https://api.groq.com/openai"
+# Groq Whisper models: "whisper-large-v3-turbo" (fastest, recommended) or "whisper-large-v3"
+remote_model = "whisper-large-v3-turbo"
+
+# API Key is read from the VOXTYPE_WHISPER_API_KEY environment variable.
+# (Or uncomment and set directly: remote_api_key = "gsk_...")
+# remote_api_key = "..."
+
+# Spoken language: "auto" for auto-detection, or language code (e.g. "en", "de", "fr")
+language = "auto"
+translate = false
+
+[hotkey]
+# Built-in evdev hotkey detection is disabled because keybindings are handled
+# by Hyprland (SUPER + \ -> voxtype record toggle) and Noctalia bar clicks.
+enabled = false
+mode = "toggle"
+
+[osd]
+# Disable standalone floating waveform OSD since Noctalia bar handles status indication
+enabled = false
+
+[output]
+mode = "type"
+fallback_to_clipboard = true
+type_delay_ms = 0
+pre_type_delay_ms = 0
+restore_clipboard = false
+
+[output.notification]
+# Desktop notifications (Noctalia / notification daemon)
+on_recording_start = false
+on_recording_stop = false
+on_transcription = false
+
+[audio]
+device = "sysdefault:CARD=StreamCam"
+sample_rate = 16000
+max_duration_secs = 60
+
+# Optional audio cues when recording starts and stops
+[audio.feedback]
+enabled = true
+theme = "default"
+volume = 0.5

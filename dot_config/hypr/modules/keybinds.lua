@@ -1,14 +1,15 @@
 -- ~/.config/hypr/modules/keybinds.lua
 -- Keybindings & Noctalia IPC Controls
 
-local mainMod     = "SUPER"
-local ipc         = "noctalia msg "
-local terminal    = "kitty"
-local fileManager = "nautilus"
+local mainMod      = "SUPER"
+local ipc          = "noctalia msg "
+local launchPrefix = "uwsm app -- "
+local terminal     = "kitty"
+local fileManager  = "dolphin"
 
 -- Applications
-hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd(terminal))
-hl.bind(mainMod .. " + E",      hl.dsp.exec_cmd(fileManager))
+hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd(launchPrefix .. terminal))
+hl.bind(mainMod .. " + E",      hl.dsp.exec_cmd(launchPrefix .. fileManager))
 hl.bind(mainMod .. " + Q",      hl.dsp.window.close())
 
 -- Windows & Layouts
@@ -18,7 +19,7 @@ hl.bind(mainMod .. " + P", hl.dsp.window.pseudo())
 hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit"))
 
 -- Voice Dictation (Voxtype)
-hl.bind(mainMod .. " + BACKSLASH", hl.dsp.exec_cmd("voxtype record toggle"))
+hl.bind("MOD5 + period", hl.dsp.exec_cmd("voxtype record toggle"))
 
 
 -- Noctalia Panels & Surfaces

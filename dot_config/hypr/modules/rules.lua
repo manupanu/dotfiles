@@ -37,6 +37,12 @@ hl.window_rule({
 	size  = { 1080, 920 },
 })
 
+-- Steam and its windows: always launch on desktop 4 (game)
+hl.window_rule({
+	match     = { class = "^([Ss]team.*)$" },
+	workspace = 4,
+})
+
 -- Blur and disable Hyprland layer animations on Noctalia layer surfaces
 hl.layer_rule({
 	name         = "noctalia-blur",

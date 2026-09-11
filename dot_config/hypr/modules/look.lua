@@ -22,8 +22,9 @@ hl.config({
 	},
 
 	input = {
-		kb_layout          = "us",
-		kb_variant         = "altgr-intl",
+		kb_layout          = "ch",
+		kb_variant         = "de_nodeadkeys",
+		kb_options         = "lv3:rwin_switch",
 		repeat_delay       = 300,
 		repeat_rate        = 50,
 		numlock_by_default = true,
@@ -36,6 +37,7 @@ hl.config({
 
 	misc = {
 		force_default_wallpaper = -1,
+		vrr = 2,
 	},
 })
 

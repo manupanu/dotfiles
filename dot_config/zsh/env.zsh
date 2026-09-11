@@ -1,5 +1,5 @@
 # User-installed executables & paths
-export PATH="$HOME/.local/bin:$HOME/.bun/bin:$PATH"
+export PATH="$HOME/.local/bin:$HOME/.cache/.bun/bin:$HOME/.bun/bin:$PATH"
 
 # Rust & Cargo
 [[ -f "$HOME/.cargo/env" ]] && . "$HOME/.cargo/env"
