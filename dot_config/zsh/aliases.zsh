@@ -2,6 +2,13 @@
 alias c='clear'
 alias n='ninja'
 
+# eza (modern ls replacement)
+if command -v eza >/dev/null 2>&1; then
+  alias ls='eza --icons'
+  alias ll='eza -l --icons'
+  alias la='eza -la --icons'
+fi
+
 # Multi-core build aliases (Linux & macOS compatible)
 _get_nprocs() {
   if command -v nproc >/dev/null 2>&1; then

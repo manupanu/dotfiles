@@ -23,6 +23,9 @@ hl.on("hyprland.start", function()
 	-- Nextcloud desktop client (start minimized to tray)
 	hl.exec_cmd("uwsm app -s b -- nextcloud --background")
 
+	-- Trayscale Tailscale client (start minimized to tray)
+	hl.exec_cmd("uwsm app -s b -- trayscale --hide-window")
+
 	-- Voxtype voice-to-text daemon
 	hl.exec_cmd("systemctl --user start voxtype.service")
 
