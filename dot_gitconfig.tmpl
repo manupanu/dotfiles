@@ -1,3 +1,4 @@
+{{- $winUser := or (env "USERNAME") (env "USER") (ternary "manrig" .chezmoi.username .work) -}}
 [user]
 	name = {{ .name }}
 	email = {{ .email }}
@@ -6,11 +7,12 @@
 	format = ssh
 [gpg "ssh"]
 	{{- if eq .chezmoi.os "windows" }}
-	program = C:/Users/manrig/AppData/Local/Microsoft/WindowsApps/op-ssh-sign.exe
+	program = C:/Users/{{ $winUser }}/AppData/Local/Microsoft/WindowsApps/op-ssh-sign.exe
 	{{- else if eq .chezmoi.os "linux" }}
-	program = /opt/1Password/op-ssh-sign
 	{{-   if (.chezmoi.kernel.osrelease | lower | contains "microsoft") }}
-	program = /mnt/c/Users/manrig/AppData/Local/Microsoft/WindowsApps/op-ssh-sign.exe
+	program = /mnt/c/Users/{{ $winUser }}/AppData/Local/Microsoft/WindowsApps/op-ssh-sign.exe
+	{{-   else }}
+	program = /opt/1Password/op-ssh-sign
 	{{-   end }}
 	{{- else if eq .chezmoi.os "darwin" }}
 	program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
@@ -19,9 +21,29 @@
 	gpgsign = true
 [init]
 	defaultBranch = "main"
-[url "git@github.com:"]
-	insteadOf = https://github.com/
-{{- if eq .chezmoi.os "windows" }}
 [core]
+	excludesfile = ~/.config/git/ignore
+{{- if eq .chezmoi.os "windows" }}
 	sshCommand = C:/WINDOWS/System32/OpenSSH/ssh.exe
 {{- end }}
+[push]
+	autoSetupRemote = true
+	followTags = true
+[pull]
+	rebase = true
+[fetch]
+	prune = true
+	pruneTags = true
+[diff]
+	algorithm = histogram
+	colorMoved = plain
+	mnemonicPrefix = true
+[merge]
+	conflictstyle = zdiff3
+[rebase]
+	autoSquash = true
+	autoStash = true
+[help]
+	autocorrect = prompt
+[url "git@github.com:"]
+	insteadOf = https://github.com/

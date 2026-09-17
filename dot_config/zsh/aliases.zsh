@@ -1,6 +1,5 @@
 # General convenience aliases
 alias c='clear'
-alias n='ninja'
 
 # eza (modern ls replacement)
 if command -v eza >/dev/null 2>&1; then
@@ -10,25 +9,26 @@ if command -v eza >/dev/null 2>&1; then
 fi
 
 # Multi-core build aliases (Linux & macOS compatible)
-_get_nprocs() {
+() {
+  local nprocs=2
   if command -v nproc >/dev/null 2>&1; then
-    nproc
+    nprocs=$(nproc)
   elif command -v sysctl >/dev/null 2>&1; then
-    sysctl -n hw.ncpu 2>/dev/null || echo 2
-  else
-    echo 2
+    nprocs=$(sysctl -n hw.ncpu 2>/dev/null || echo 2)
   fi
+  alias make="make -j${nprocs}"
+  alias ninja="ninja -j${nprocs}"
+  alias n="ninja -j${nprocs}"
 }
-alias make='make -j$(_get_nprocs)'
-alias ninja='ninja -j$(_get_nprocs)'
 
 # Yazi wrapper: `y` changes current directory to Yazi's last visited directory
 y() {
   local tmp cwd
   tmp="$(mktemp -t 'yazi-cwd.XXXXXX')"
   command yazi "$@" --cwd-file="$tmp"
-  IFS= read -r -d '' cwd < "$tmp"
-  [[ "$cwd" != "$PWD" && -d "$cwd" ]] && builtin cd -- "$cwd"
+  if cwd="$(command cat -- "$tmp")" && [[ -n "$cwd" && "$cwd" != "$PWD" ]]; then
+    builtin cd -- "$cwd"
+  fi
   command rm -f -- "$tmp"
 }
 

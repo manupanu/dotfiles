@@ -17,7 +17,7 @@ alias rip="expac --timefmt='%Y-%m-%d %T' '%l\\t%n %v' | sort | tail -200 | nl"
 # Safely remove orphaned packages
 cleanup() {
   local -a orphans
-  orphans=("${(@f)$(pacman -Qtdq 2>/dev/null)}")
+  orphans=(${(f)"$(pacman -Qtdq 2>/dev/null)"})
   if (( ${#orphans[@]} )); then
     sudo pacman -Rsn -- "${orphans[@]}"
   else

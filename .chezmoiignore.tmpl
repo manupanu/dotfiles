@@ -1,4 +1,5 @@
 README.md
+.gitignore
 
 {{ if ne .chezmoi.os "linux" }}
 # Linux-only Desktop, Window Manager, and GTK configs
@@ -12,6 +13,17 @@ README.md
 .config/paru/**
 .icons
 .icons/**
+.config/MangoHud
+.config/MangoHud/**
+.config/uwsm
+.config/uwsm/**
+.config/qt5ct
+.config/qt5ct/**
+.config/qt6ct
+.config/qt6ct/**
+.config/voxtype
+.config/voxtype/**
+.config/*-flags.conf
 {{ end }}
 
 {{ if eq .chezmoi.os "windows" }}

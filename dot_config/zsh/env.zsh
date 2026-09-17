@@ -1,11 +1,22 @@
 # User-installed executables & paths
 export PATH="$HOME/.local/bin:$HOME/.cache/.bun/bin:$HOME/.bun/bin:$PATH"
 
+# Preferred editor
+if command -v nvim >/dev/null 2>&1; then
+  export EDITOR="nvim"
+  export VISUAL="nvim"
+elif command -v vim >/dev/null 2>&1; then
+  export EDITOR="vim"
+  export VISUAL="vim"
+fi
+
 # Rust & Cargo
 [[ -f "$HOME/.cargo/env" ]] && . "$HOME/.cargo/env"
 
 # fast node version manager
-eval "$(fnm env --use-on-cd --shell zsh)"
+if command -v fnm >/dev/null 2>&1; then
+  eval "$(fnm env --use-on-cd --shell zsh)"
+fi
 
 # macOS Homebrew path support
 if [[ "$OSTYPE" == darwin* ]]; then

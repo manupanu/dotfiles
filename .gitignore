@@ -1,0 +1,16 @@
+# macOS noise
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows noise
+Thumbs.db
+Desktop.ini
+
+# Linux & editor swap/temporary files
+*~
+*.swp
+*.swo
+.idea/
+.vscode/
