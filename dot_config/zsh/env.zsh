@@ -25,6 +25,11 @@ if [[ "$OSTYPE" == darwin* ]]; then
   elif [[ -x /usr/local/bin/brew ]]; then
     eval "$(/usr/local/bin/brew shellenv)"
   fi
+
+  # Homebrew Python unversioned symlinks (python -> python3)
+  if [[ -d "${HOMEBREW_PREFIX:-/opt/homebrew}/opt/python/libexec/bin" ]]; then
+    export PATH="${HOMEBREW_PREFIX:-/opt/homebrew}/opt/python/libexec/bin:$PATH"
+  fi
 fi
 
 # Readable man-page emphasis

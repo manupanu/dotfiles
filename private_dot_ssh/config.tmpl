@@ -1,6 +1,6 @@
 # Read more about SSH config files: https://linux.die.net/man/5/ssh_config
 {{- if eq .chezmoi.os "darwin" }}
-Include ~/.orbstack/ssh/config
+Include ~/.colima/ssh_config
 Host *
 	IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
 {{- end }}
@@ -21,6 +21,11 @@ Host ch-testlab-rn01
 
 Host ch-testlab-rn02
     HostName 10.60.10.59
+    User testlab
+    ForwardAgent yes
+
+Host ch-testlab-rn03
+    HostName 10.60.10.41
     User testlab
     ForwardAgent yes
 
