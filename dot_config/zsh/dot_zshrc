@@ -15,3 +15,7 @@ esac
 
 # Interactive prompt & navigation tools
 [[ -f "$ZSH_CONFIG/tools.zsh" ]] && source "$ZSH_CONFIG/tools.zsh"
+
+# opencode
+export PATH=/Users/manrig/.opencode/bin:$PATH
+export PATH=/opt/homebrew/opt/rustup/bin:$PATH
