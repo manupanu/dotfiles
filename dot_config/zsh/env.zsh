@@ -30,6 +30,7 @@ if [[ "$OSTYPE" == darwin* ]]; then
   if [[ -d "${HOMEBREW_PREFIX:-/opt/homebrew}/opt/python/libexec/bin" ]]; then
     export PATH="${HOMEBREW_PREFIX:-/opt/homebrew}/opt/python/libexec/bin:$PATH"
   fi
+  export PIPENV_VENV_IN_PROJECT=1
 fi
 
 # Readable man-page emphasis
