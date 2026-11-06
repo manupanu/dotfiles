@@ -6,5 +6,18 @@ thunar tumbler gvfs file-roller thunar-archive-plugin adw-gtk-theme papirus-icon
 gnome-themes-extra playerctl imv mpv mpv-mpris zathura zathura-pdf-mupdf ttf-jetbrains-mono
 xdg-utils jq glib2 gsettings-desktop-schemas firefox cliphist qt6ct kvantum
 greetd greetd-tuigreet gnome-keyring chezmoi ghostty
+
+# Shell / CLI tools used by the zsh config and helpers
+wl-clipboard zsh git neovim micro yazi starship zoxide fzf eza bat ripgrep btop fastfetch mise
+
+# Editor
+zed
+
+# Desktop monitor brightness over DDC/CI (brightness helper falls back to
+# ddcutil when there is no backlight device). Needs: sudo usermod -aG i2c $USER
+ddcutil
 # AUR
-# bibata-cursor-theme-bin kvantum-theme-catppuccin-git
+# bibata-cursor-theme-bin kvantum-theme-catppuccin-git 1password 1password-cli
+#
+# Font (not packaged): Maple Mono NL NF / Normal NL NF from
+# https://github.com/subframe7536/maple-font -> ~/.local/share/fonts

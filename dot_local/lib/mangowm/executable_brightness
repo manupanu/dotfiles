@@ -1,22 +1,40 @@
 #!/usr/bin/env bash
+# Screen brightness up/down. Uses brightnessctl when a backlight device exists
+# (laptops) and falls back to ddcutil (DDC/CI) for external monitors on desktops.
+# ddcutil needs the user in the `i2c` group (log out/in once after joining).
 
 set -Eeuo pipefail
 # shellcheck source=/dev/null
 source "$HOME/.local/lib/mangowm/common"
 
-mangowm_require brightnessctl
+STEP=5
+
 case "${1-}" in
-  up)
-    brightnessctl --class=backlight set +5%
-    ;;
-  down)
-    brightnessctl --class=backlight set 5%-
-    ;;
+  up | down) ;;
   *)
     printf 'Usage: %s up|down\n' "${0##*/}" >&2
     exit 2
     ;;
 esac
 
-pct=$(brightnessctl -m 2>/dev/null | awk -F, 'NF>=4 {print $4; exit}' || true)
-mangowm_notify normal "Brightness" "󰃠 ${pct}"
+has_backlight() {
+  command -v brightnessctl >/dev/null 2>&1 &&
+    compgen -G '/sys/class/backlight/*' >/dev/null
+}
+
+if has_backlight; then
+  if [[ "$1" == up ]]; then
+    brightnessctl --class=backlight set "+${STEP}%" >/dev/null
+  else
+    brightnessctl --class=backlight set "${STEP}%-" >/dev/null
+  fi
+  pct=$(brightnessctl -m 2>/dev/null | awk -F, 'NF>=4 {print $4; exit}' || true)
+else
+  mangowm_require ddcutil
+  # ddcutil is slow (~1s); --noverify and a fixed sleep multiplier keep it snappy.
+  if [[ "$1" == up ]]; then sign='+'; else sign='-'; fi
+  ddcutil --noverify setvcp 10 "$sign" "$STEP" >/dev/null
+  pct=$(ddcutil --brief getvcp 10 2>/dev/null | awk '{print $4 "%"}' || true)
+fi
+
+mangowm_notify normal "Brightness" "󰃠 ${pct:-?}"

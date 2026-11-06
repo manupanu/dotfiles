@@ -1,50 +1,145 @@
 #!/usr/bin/env bash
+# Keybinding cheat sheet, generated from the live MangoWM config so it never
+# goes stale. Usage:
+#   keybinds              show the list in a fuzzel menu (Super+F1)
+#   keybinds --list       print the list to stdout
+#   keybinds --markdown   print a markdown table (used for the README)
 
 set -Eeuo pipefail
 # shellcheck source=/dev/null
 source "$HOME/.local/lib/mangowm/common"
 
-mangowm_require fuzzel
-theme_dir=$(mangowm_theme_dir)
+conf_dir="${XDG_CONFIG_HOME:-$HOME/.config}/mango"
 
-keybindings=(
-  "   Super + Enter                 Terminal (Ghostty, tiling)"
-  "   Super + Shift + Enter         Terminal (Ghostty, floating window)"
-  "󰍉   Super + D                     Application Launcher (Fuzzel)"
-  "📁  Super + E                     File Manager (Thunar, floating)"
-  "🌐  Super + B                     Web Browser (Firefox)"
-  "󰖔   Super + N                     Toggle Night Light (On / Off)"
-  "⚡  Super + Shift + P             Power Profile Menu"
-  "🖼️   Super + W                     Wallpaper Selector"
-  "🎨  Super + Alt + T               Theme / Accent Color Selector"
-  "📶  Super + Shift + W             Wi-Fi Network Menu"
-  "📸  Super + S / Print             Fullscreen Screenshot"
-  "📸  Super + Shift + S             Screenshot with Annotation (Satty)"
-  "🎯  Super + P                     Screen Color Picker"
-  "⏺️   Super + R                     Record Full Screen (wf-recorder)"
-  "⏺️   Super + Shift + R             Record Screen Region (wf-recorder)"
-  "🎙️   Super + Alt + R               Recording Menu (Audio Options)"
-  "🔒  Super + L                     Lock Screen (Swaylock)"
-  "🚪  Super + X                     Logout / Power Menu (wlogout)"
-  "🔄  Super + Escape                Reload MangoWM Configuration"
-  "🚪  Super + Shift + Escape        Quit MangoWM Session"
-  "❌  Super + C                     Close Focused Window"
-  "🪟  Super + Space                 Toggle Floating Window"
-  "🪟  Super + F                     Toggle Fullscreen"
-  "🪟  Super + T                     Cycle Layout (Dwindle / Tiling)"
-  "🪟  Super + Arrows                Move Window Focus"
-  "🪟  Super + Shift + Arrows       Swap Window Position"
-  "🪟  Super + 1 .. 9                Switch to Workspace 1-9"
-  "🪟  Super + Shift + 1 .. 9        Move Window to Workspace 1-9"
-  "🖱️   Super + Left Click          Move Floating Window"
-  "🖱️   Super + Right Click          Resize Floating Window"
-  "🔆  Fn keys                       Screen Brightness Up / Down"
-  "🔊  Media keys                    Volume Up / Down / Mute"
-  "📋  Super + V                     Clipboard History"
-  "🔊  Super + Shift + V             Audio Device Menu (Outputs / Microphones)"
-  "❓  Super + F1                    Show this Keybindings Guide"
+# Friendly names for the helper scripts bound with `spawn`.
+declare -A script_names=(
+  [terminal]="Terminal"
+  [launcher]="Application launcher"
+  [lock]="Lock screen"
+  [browser]="Web browser"
+  [screenshot]="Screenshot"
+  [color-picker]="Color picker"
+  [power-menu]="Power / logout menu"
+  [power-profile]="Power profile"
+  [night-light]="Night light"
+  [wallpaper]="Wallpaper"
+  [wifi]="Wi-Fi menu"
+  [idle-inhibit]="Toggle idle inhibit"
+  [keybinds]="This keybinding list"
+  [volume]="Volume"
+  [clipboard]="Clipboard history"
+  [media]="Media"
+  [recording]="Screen recording"
+  [brightness]="Brightness"
+  [mango-theme]="Theme / accent menu"
+  [thunar]="File manager"
 )
 
-printf '%s\n' "${keybindings[@]}" | \
-  fuzzel --dmenu --config="$theme_dir/fuzzel.ini" \
-    --prompt="Keybindings ❯ " --lines=15 --width=58 || true
+# Friendly names for built-in MangoWM actions.
+declare -A action_names=(
+  [killclient]="Close window"
+  [togglefloating]="Toggle floating"
+  [togglefullscreen]="Toggle fullscreen"
+  [toggleoverview]="Overview"
+  [switch_layout]="Cycle layout"
+  [reload_config]="Reload config"
+  [quit]="Quit MangoWM"
+)
+
+pretty_mods() {
+  local out=() m
+  IFS='+' read -ra parts <<<"$1"
+  for m in "${parts[@]}"; do
+    case "${m^^}" in
+      NONE | "") ;;
+      SUPER) out+=("Super") ;;
+      SHIFT) out+=("Shift") ;;
+      CTRL | CONTROL) out+=("Ctrl") ;;
+      ALT) out+=("Alt") ;;
+      *) out+=("$m") ;;
+    esac
+  done
+  local IFS='+'
+  printf '%s' "${out[*]//+/ + }" | sed 's/ /+/g; s/+/ + /g'
+}
+
+pretty_key() {
+  case "$1" in
+    Return) printf 'Enter' ;;
+    Escape) printf 'Esc' ;;
+    comma) printf ',' ;;
+    period) printf '.' ;;
+    *) printf '%s' "$1" ;;
+  esac
+}
+
+describe() {
+  local action="$1" args="$2" cmd base rest
+  case "$action" in
+    spawn)
+      cmd="${args%% *}"
+      rest=""
+      [[ "$args" == *" "* ]] && rest="${args#* }"
+      base="${cmd##*/}"
+      if [[ -n "${script_names[$base]:-}" ]]; then
+        printf '%s' "${script_names[$base]}${rest:+ ($rest)}"
+      else
+        printf 'Run %s' "$args"
+      fi
+      ;;
+    focusdir) printf 'Focus window %s' "$args" ;;
+    exchange_client) printf 'Move window %s' "$args" ;;
+    focusmon) printf 'Focus monitor %s' "$args" ;;
+    tagmon) printf 'Send window to monitor %s' "$args" ;;
+    *)
+      if [[ -n "${action_names[$action]:-}" ]]; then
+        printf '%s' "${action_names[$action]}"
+      else
+        printf '%s%s' "$action" "${args:+ $args}"
+      fi
+      ;;
+  esac
+}
+
+collect() {
+  local f line body mods key action args
+  for f in "$conf_dir"/conf.d/*.conf "$conf_dir"/config.local.conf; do
+    [[ -r "$f" ]] || continue
+    while IFS= read -r line; do
+      [[ "$line" =~ ^bind[a-z]*= ]] || continue
+      body="${line#*=}"
+      IFS=',' read -r mods key action args <<<"$body"
+      # Workspace tag binds are summarised below instead of listed 18 times.
+      case "$action" in view | tag) continue ;; esac
+      printf '%s\t%s\n' \
+        "$(pretty_mods "$mods")${mods:+$([[ "${mods^^}" == NONE ]] || printf ' + ')}$(pretty_key "$key")" \
+        "$(describe "$action" "$args")"
+    done <"$f"
+  done
+  printf '%s\t%s\n' "Super + 1 .. 9" "Switch to workspace 1-9"
+  printf '%s\t%s\n' "Super + Shift + 1 .. 9" "Move window to workspace 1-9"
+  printf '%s\t%s\n' "Super + Left Click (drag)" "Move window"
+  printf '%s\t%s\n' "Super + Right Click (drag)" "Resize window"
+}
+
+mode="${1-}"
+case "$mode" in
+  --markdown)
+    printf '| Keys | Action |\n| --- | --- |\n'
+    collect | awk -F'\t' '{ printf "| `%s` | %s |\n", $1, $2 }'
+    ;;
+  --list)
+    collect | awk -F'\t' '{ printf "%-30s %s\n", $1, $2 }'
+    ;;
+  "")
+    mangowm_require fuzzel
+    theme_dir=$(mangowm_theme_dir)
+    collect | awk -F'\t' '{ printf "%-30s %s\n", $1, $2 }' |
+      fuzzel --dmenu --config="$theme_dir/fuzzel.ini" \
+        --prompt="Keybindings ❯ " --lines=20 --width=62 || true
+    ;;
+  *)
+    printf 'Usage: %s [--list|--markdown]\n' "${0##*/}" >&2
+    exit 2
+    ;;
+esac

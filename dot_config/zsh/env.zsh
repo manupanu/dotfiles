@@ -13,9 +13,9 @@ fi
 # Rust & Cargo
 [[ -f "$HOME/.cargo/env" ]] && . "$HOME/.cargo/env"
 
-# fast node version manager
-if command -v fnm >/dev/null 2>&1; then
-  eval "$(fnm env --use-on-cd --shell zsh)"
+# mise: node/python/etc. version manager
+if command -v mise >/dev/null 2>&1; then
+  eval "$(mise activate zsh)"
 fi
 
 # macOS Homebrew path support
