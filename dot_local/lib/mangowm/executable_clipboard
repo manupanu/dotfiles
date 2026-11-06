@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+# shellcheck source=/dev/null
+source "$HOME/.local/lib/mangowm/common"
+
+mangowm_require cliphist
+mangowm_require fuzzel
+mangowm_require wl-copy
+theme_dir=$(mangowm_theme_dir)
+
+case "${1:-menu}" in
+  menu)
+    selection=$(cliphist list | \
+      fuzzel --dmenu --config="$theme_dir/fuzzel.ini" \
+        --prompt="Clipboard ❯ " --lines=12 --width=60 || true)
+    [[ -n "$selection" ]] || exit 0
+    printf '%s' "$selection" | cliphist decode | wl-copy
+    ;;
+  clear)
+    cliphist wipe
+    mangowm_notify low 'Clipboard' 'History cleared'
+    ;;
+  *)
+    printf 'Usage: %s menu|clear\n' "${0##*/}" >&2
+    exit 2
+    ;;
+esac

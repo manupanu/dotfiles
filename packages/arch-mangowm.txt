@@ -1,0 +1,10 @@
+# Official repos (pacman -S --needed - < packages/arch-mangowm.txt after removing comments)
+mangowm fuzzel mako polkit-gnome swaybg swayidle wayland-pipewire-idle-inhibit wlopm
+xdg-desktop-portal-wlr xdg-desktop-portal-gtk xwayland-satellite swaylock-effects wlogout
+waybar grim slurp satty imagemagick wf-recorder gammastep libnotify blueman wlr-randr
+thunar tumbler gvfs file-roller thunar-archive-plugin adw-gtk-theme papirus-icon-theme
+gnome-themes-extra playerctl imv mpv mpv-mpris zathura zathura-pdf-mupdf ttf-jetbrains-mono
+xdg-utils jq glib2 gsettings-desktop-schemas firefox cliphist qt6ct kvantum
+greetd greetd-tuigreet gnome-keyring chezmoi ghostty
+# AUR
+# bibata-cursor-theme-bin kvantum-theme-catppuccin-git

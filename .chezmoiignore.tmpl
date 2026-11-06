@@ -1,36 +1,55 @@
+# Repo housekeeping (never deployed)
 README.md
 .gitignore
+LICENSES
+LICENSES/**
+themes
+themes/**
+system
+system/**
+packages
+packages/**
 
 {{ if ne .chezmoi.os "linux" }}
-# Linux-only Desktop, Window Manager, and GTK configs
-.config/hypr
-.config/hypr/**
+# Linux-only desktop, Wayland (MangoWM) and GTK/Qt configs
+.config/mango
+.config/mango/**
+.config/waybar
+.config/waybar/**
+.config/wlogout
+.config/wlogout/**
+.config/swayidle
+.config/swayidle/**
+.config/xdg-desktop-portal
+.config/xdg-desktop-portal/**
+.config/Kvantum
+.config/Kvantum/**
 .config/gtk-3.0
 .config/gtk-3.0/**
 .config/gtk-4.0
 .config/gtk-4.0/**
 .config/paru
 .config/paru/**
-.icons
-.icons/**
 .config/MangoHud
 .config/MangoHud/**
-.config/uwsm
-.config/uwsm/**
-.config/qt5ct
-.config/qt5ct/**
 .config/qt6ct
 .config/qt6ct/**
-.config/voxtype
-.config/voxtype/**
-.config/*-flags.conf
+.local/bin/mango-theme
+.local/bin/mangowm-session
+.local/bin/dotfiles-theme
+.local/lib/mangowm
+.local/lib/mangowm/**
+.local/lib/dotfiles
+.local/lib/dotfiles/**
+.local/share/dotfiles
+.local/share/dotfiles/**
+.local/share/icons
+.local/share/icons/**
 {{ end }}
 
 {{ if eq .chezmoi.os "windows" }}
-# Unix-only shells and terminal emulators
+# Unix-only shells
 .zshenv
 .config/zsh
 .config/zsh/**
-.config/kitty
-.config/kitty/**
 {{ end }}

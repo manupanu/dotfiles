@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+operation=${1:-apply}
+schema=org.gnome.desktop.interface
+
+case "$operation" in
+  apply|check)
+    ;;
+  *)
+    printf 'Usage: %s apply|check\n' "${0##*/}" >&2
+    exit 2
+    ;;
+esac
+
+if ! command -v gsettings >/dev/null 2>&1; then
+  printf 'error: gsettings is not available; install glib2\n' >&2
+  exit 1
+fi
+
+available_schemas=$(gsettings list-schemas)
+if ! grep -Fxq "$schema" <<< "$available_schemas"; then
+  printf 'error: missing schema %s; install gsettings-desktop-schemas\n' \
+    "$schema" >&2
+  exit 1
+fi
+
+available_keys=$(gsettings list-keys "$schema")
+
+set_or_check_pref() {
+  local key=$1
+  local expected=$2
+  local value=$3
+
+  if ! grep -Fxq "$key" <<< "$available_keys"; then
+    return 0
+  fi
+
+  local current
+  current=$(gsettings get "$schema" "$key" 2>/dev/null || true)
+  if [[ "$current" == "$expected" ]]; then
+    return 0
+  fi
+
+  if [[ "$operation" == check ]]; then
+    printf 'error: %s.%s is %s; expected %s\n' \
+      "$schema" "$key" "$current" "$expected" >&2
+    return 1
+  fi
+
+  gsettings set "$schema" "$key" "$value"
+  current=$(gsettings get "$schema" "$key" 2>/dev/null || true)
+  if [[ "$current" != "$expected" ]]; then
+    printf 'error: gsettings did not keep %s.%s=%s\n' \
+      "$schema" "$key" "$expected" >&2
+    return 1
+  fi
+}
+
+set_or_check_pref "color-scheme" "'prefer-dark'" "prefer-dark"
+set_or_check_pref "gtk-theme" "'adw-gtk3-dark'" "adw-gtk3-dark"
+set_or_check_pref "icon-theme" "'Papirus-Dark'" "Papirus-Dark"
+
+# Renders the shared theme when no revision is active yet; dotfiles-theme owns
+# every theme output and the Yazi flavor link.
+ensure_theme() {
+  local engine="$HOME/.local/bin/dotfiles-theme"
+
+  if [[ -x "$engine" ]]; then
+    "$engine" path >/dev/null
+  fi
+}
+
+if [[ "$operation" == check ]]; then
+  printf 'prefer-dark\n'
+else
+  ensure_theme
+  printf 'session preferences applied\n'
+fi
