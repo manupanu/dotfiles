@@ -54,8 +54,8 @@ per-machine templated content.
 The Linux desktop is [MangoWM](https://github.com/mangowm/mango) with Waybar,
 Fuzzel, Mako, Swaylock, wlogout and a Catppuccin Mocha theme engine
 (`~/.local/bin/mango-theme`, accents switch with `Super+Alt+T`). It started from
-[anthonyportugal/dotfiles](https://github.com/anthonyportugal/dotfiles) (MIT, see
-`LICENSES/`) and was adapted: Swiss `ch` layout, ghostty, firefox, thunar,
+[anthonyportugal/dotfiles](https://github.com/anthonyportugal/dotfiles) (MIT)
+and was adapted: Swiss `ch` layout, ghostty, firefox, thunar,
 keyring-friendly session, window rules, cliphist on `Super+V`, Qt via
 qt6ct + Kvantum, Bibata cursor.
 
