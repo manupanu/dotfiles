@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+# shellcheck source=/dev/null
+source "$HOME/.local/lib/mangowm/common"
+
+mangowm_require ghostty
+# Callers use foot's --app-id; ghostty calls it --class.
+args=()
+for a in "$@"; do
+  case "$a" in
+    --app-id=*) args+=("--class=${a#--app-id=}") ;;
+    *) args+=("$a") ;;
+  esac
+done
+exec ghostty --gtk-single-instance=false "${args[@]}"

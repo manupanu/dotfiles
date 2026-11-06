@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+
+mangowm_state_home() {
+  printf '%s\n' "${XDG_STATE_HOME:-$HOME/.local/state}"
+}
+
+mangowm_runtime_dir() {
+  local runtime_root=${XDG_RUNTIME_DIR:-"$(mangowm_state_home)/runtime"}
+  local runtime_dir="$runtime_root/mangowm"
+
+  mkdir -p -- "$runtime_dir"
+  chmod 0700 -- "$runtime_dir"
+  printf '%s\n' "$runtime_dir"
+}
+
+# Active theme root of the shared engine (desktop layer): shared outputs such
+# as background live here, MangoWM outputs below mangowm/.
+mangowm_theme_root() {
+  local engine="$HOME/.local/bin/dotfiles-theme"
+  local current
+
+  current=$("$engine" path) || {
+    printf 'mangowm: could not render the active theme\n' >&2
+    return 1
+  }
+  # A theme rendered before the MangoWM templates were installed lacks them.
+  if [[ ! -d "$current/mangowm" ]]; then
+    "$engine" render >/dev/null || true
+  fi
+  [[ -d "$current/mangowm" ]] || {
+    printf 'mangowm: the active theme has no MangoWM templates\n' >&2
+    return 1
+  }
+  printf '%s\n' "$current"
+}
+
+mangowm_theme_dir() {
+  local root
+
+  root=$(mangowm_theme_root) || return 1
+  printf '%s\n' "$root/mangowm"
+}
+
+mangowm_notify() {
+  local urgency=$1
+  local summary=$2
+  local body=${3-}
+
+  if command -v notify-send >/dev/null 2>&1; then
+    notify-send --urgency="$urgency" --app-name=MangoWM "$summary" "$body"
+  else
+    printf '%s: %s\n' "$summary" "$body" >&2
+  fi
+}
+
+mangowm_require() {
+  command -v "$1" >/dev/null 2>&1 || {
+    mangowm_notify critical 'Component unavailable' "Install the command: $1"
+    return 127
+  }
+}
+
+mangowm_is_media_active() {
+  if command -v playerctl >/dev/null 2>&1 && [[ "$(playerctl status 2>/dev/null || true)" == "Playing" ]]; then
+    return 0
+  fi
+  if command -v pactl >/dev/null 2>&1 && pactl list sink-inputs 2>/dev/null | grep -q 'State: RUNNING'; then
+    return 0
+  fi
+  return 1
+}

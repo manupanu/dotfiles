@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+# shellcheck source=/dev/null
+source "$HOME/.local/lib/mangowm/common"
+
+runtime_dir=$(mangowm_runtime_dir)
+state_file="$runtime_dir/idle-inhibit.state"
+
+is_inhibited() {
+  if [[ -f "$state_file" ]]; then
+    [[ "$(<"$state_file")" == "on" ]]
+    return $?
+  fi
+  if command -v systemctl >/dev/null 2>&1; then
+    if systemctl --user is-active --quiet mangowm-swayidle 2>/dev/null; then
+      return 1
+    else
+      return 0
+    fi
+  fi
+  return 1
+}
+
+refresh_waybar() {
+  pkill -RTMIN+11 waybar 2>/dev/null || true
+}
+
+inhibit() {
+  systemctl --user stop mangowm-swayidle 2>/dev/null || true
+  printf 'on\n' > "$state_file"
+  mangowm_notify normal "Idle Inhibitor" "󰅶 Presentation mode on (screen stays awake)"
+  refresh_waybar
+}
+
+resume() {
+  rm -f "$state_file"
+  if ! systemctl --user start mangowm-swayidle 2>/dev/null; then
+    local config="${XDG_CONFIG_HOME:-$HOME/.config}/swayidle/config"
+    if command -v systemd-run >/dev/null 2>&1 && command -v swayidle >/dev/null 2>&1 && [[ -r "$config" ]]; then
+      systemd-run --user --quiet --collect --unit=mangowm-swayidle \
+        --property=Restart=on-failure \
+        --property=RestartSec=1s \
+        -- swayidle -w -C "$config" 2>/dev/null || true
+    fi
+  fi
+  mangowm_notify normal "Automatic Idle" "󰾪 Power-saving mode on"
+  refresh_waybar
+}
+
+toggle() {
+  if is_inhibited; then
+    resume
+  else
+    inhibit
+  fi
+}
+
+status() {
+  if is_inhibited; then
+    printf 'inhibited\n'
+  else
+    printf 'active\n'
+  fi
+}
+
+status_json() {
+  if is_inhibited; then
+    printf '{"text":"󰅶","tooltip":"Presentation mode: screen always on\\n\\nClick to disable","class":"activated"}\n'
+  else
+    printf '{"text":"󰾪","tooltip":"Power-saving mode: automatic idle\\n\\nClick to enable","class":"deactivated"}\n'
+  fi
+}
+
+case "${1:-toggle}" in
+  toggle)
+    toggle
+    ;;
+  status)
+    status
+    ;;
+  waybar|status-json)
+    status_json
+    ;;
+  *)
+    printf 'Usage: %s toggle|status|waybar\n' "${0##*/}" >&2
+    exit 2
+    ;;
+esac

@@ -49,6 +49,33 @@ name/email/GPG settings per machine) are **not** affected — chezmoi always
 renders `.tmpl` files as regular files, since a symlink can't support
 per-machine templated content.
 
+## Desktop: MangoWM (Wayland, Arch / CachyOS)
+
+The Linux desktop is [MangoWM](https://github.com/mangowm/mango) with Waybar,
+Fuzzel, Mako, Swaylock, wlogout and a Catppuccin Mocha theme engine
+(`~/.local/bin/mango-theme`, accents switch with `Super+Alt+T`). It started from
+[anthonyportugal/dotfiles](https://github.com/anthonyportugal/dotfiles) (MIT, see
+`LICENSES/`) and was adapted: Swiss `ch` layout, ghostty, firefox, thunar,
+keyring-friendly session, window rules, cliphist on `Super+V`, Qt via
+qt6ct + Kvantum, Bibata cursor.
+
+- `packages/arch-mangowm.txt`: packages the desktop needs.
+- `system/`: root-owned files (greetd + tuigreet, sched-ext, PAM keyring lines)
+  that chezmoi cannot manage. See `system/README.md`.
+- `themes/`: palettes and shared templates used by `dotfiles-theme`. The engine
+  looks here via `~/.dotfiles` (chezmoi source dir).
+- Machine-local, not tracked: `~/.config/mango/config.local.conf` (monitor
+  rules, written by the monitors helper).
+
+Executable files are deployed by chezmoi as real copies even in symlink mode
+(a symlink cannot carry the exec bit). After editing a deployed script run
+`chezmoi re-add ~/.local/lib/mangowm/<script>`; plain config files are symlinks
+and need nothing.
+
+Gotcha: `.gitconfig` rewrites `https://github.com/` to SSH. Until the 1Password
+SSH agent is enabled (`~/.1password/agent.sock`), HTTPS clones from GitHub fail,
+which also affects AUR `-git` packages and the antidote bootstrap.
+
 ## Notes
 
 - Do **not** run `chezmoi add` on chezmoi's own config file

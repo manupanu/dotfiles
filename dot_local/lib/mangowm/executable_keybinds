@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+# shellcheck source=/dev/null
+source "$HOME/.local/lib/mangowm/common"
+
+mangowm_require fuzzel
+theme_dir=$(mangowm_theme_dir)
+
+keybindings=(
+  "   Super + Enter                 Terminal (Ghostty, tiling)"
+  "   Super + Shift + Enter         Terminal (Ghostty, floating window)"
+  "󰍉   Super + D                     Application Launcher (Fuzzel)"
+  "📁  Super + E                     File Manager (Thunar, floating)"
+  "🌐  Super + B                     Web Browser (Firefox)"
+  "󰖔   Super + N                     Toggle Night Light (On / Off)"
+  "⚡  Super + Shift + P             Power Profile Menu"
+  "🖼️   Super + W                     Wallpaper Selector"
+  "🎨  Super + Alt + T               Theme / Accent Color Selector"
+  "📶  Super + Shift + W             Wi-Fi Network Menu"
+  "📸  Super + S / Print             Fullscreen Screenshot"
+  "📸  Super + Shift + S             Screenshot with Annotation (Satty)"
+  "🎯  Super + P                     Screen Color Picker"
+  "⏺️   Super + R                     Record Full Screen (wf-recorder)"
+  "⏺️   Super + Shift + R             Record Screen Region (wf-recorder)"
+  "🎙️   Super + Alt + R               Recording Menu (Audio Options)"
+  "🔒  Super + L                     Lock Screen (Swaylock)"
+  "🚪  Super + X                     Logout / Power Menu (wlogout)"
+  "🔄  Super + Escape                Reload MangoWM Configuration"
+  "🚪  Super + Shift + Escape        Quit MangoWM Session"
+  "❌  Super + C                     Close Focused Window"
+  "🪟  Super + Space                 Toggle Floating Window"
+  "🪟  Super + F                     Toggle Fullscreen"
+  "🪟  Super + T                     Cycle Layout (Dwindle / Tiling)"
+  "🪟  Super + Arrows                Move Window Focus"
+  "🪟  Super + Shift + Arrows       Swap Window Position"
+  "🪟  Super + 1 .. 9                Switch to Workspace 1-9"
+  "🪟  Super + Shift + 1 .. 9        Move Window to Workspace 1-9"
+  "🖱️   Super + Left Click          Move Floating Window"
+  "🖱️   Super + Right Click          Resize Floating Window"
+  "🔆  Fn keys                       Screen Brightness Up / Down"
+  "🔊  Media keys                    Volume Up / Down / Mute"
+  "📋  Super + V                     Clipboard History"
+  "🔊  Super + Shift + V             Audio Device Menu (Outputs / Microphones)"
+  "❓  Super + F1                    Show this Keybindings Guide"
+)
+
+printf '%s\n' "${keybindings[@]}" | \
+  fuzzel --dmenu --config="$theme_dir/fuzzel.ini" \
+    --prompt="Keybindings ❯ " --lines=15 --width=58 || true

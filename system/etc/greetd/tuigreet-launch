@@ -1,0 +1,17 @@
+#!/bin/sh
+# Catppuccin Mocha palette for the Linux console, then tuigreet.
+# Failure to set the palette must never block login.
+{
+  i=0
+  for c in 1e1e2e f38ba8 a6e3a1 f9e2af 89b4fa f5c2e7 94e2d5 bac2de \
+           585b70 f38ba8 a6e3a1 f9e2af 89b4fa f5c2e7 94e2d5 a6adc8; do
+    printf '\033]P%X%s' "$i" "$c"
+    i=$((i + 1))
+  done
+  printf '\033[2J\033[H'
+} 2>/dev/null || true
+exec tuigreet --time --asterisks --remember \
+  --greeting 'Welcome back' \
+  --window-padding 1 --container-padding 2 --prompt-padding 1 \
+  --theme 'text=white;time=magenta;container=black;border=magenta;title=magenta;greet=cyan;prompt=green;input=white;action=brightblack;button=yellow' \
+  --cmd "$1"
