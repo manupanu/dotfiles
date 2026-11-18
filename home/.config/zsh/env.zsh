@@ -13,11 +13,6 @@ fi
 # Rust & Cargo
 [[ -f "$HOME/.cargo/env" ]] && . "$HOME/.cargo/env"
 
-# fast node version manager
-if command -v fnm >/dev/null 2>&1; then
-  eval "$(fnm env --use-on-cd --shell zsh)"
-fi
-
 # macOS Homebrew path support
 if [[ "$OSTYPE" == darwin* ]]; then
   # Trust the installed Cato TLS-inspection CA in Node/Bun; keep verification enabled.
@@ -41,6 +36,11 @@ if [[ "$OSTYPE" == darwin* ]]; then
     export PATH="${HOMEBREW_PREFIX:-/opt/homebrew}/opt/python/libexec/bin:$PATH"
   fi
   export PIPENV_VENV_IN_PROJECT=1
+fi
+
+# mise: node/python/etc. version manager
+if command -v mise >/dev/null 2>&1; then
+  eval "$(mise activate zsh)"
 fi
 
 # Readable man-page emphasis

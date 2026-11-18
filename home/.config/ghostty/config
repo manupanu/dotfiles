@@ -15,6 +15,7 @@ selection-background = #f5e0dc
 
 # Typography and background
 font-family = Maple Mono Normal NL NF
+font-family = Maple Mono NL NF
 font-size = 14
 background-opacity = 0.85
 background-blur = 20

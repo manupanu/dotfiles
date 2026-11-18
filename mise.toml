@@ -18,7 +18,9 @@ work = false
 "~/.config/starship.toml" = "home/.config/starship.toml"
 "~/.config/btop" = { source = "home/.config/btop", mode = "symlink-each" }
 "~/.config/fastfetch" = { source = "home/.config/fastfetch", mode = "symlink-each" }
+"~/.config/micro" = { source = "home/.config/micro", mode = "symlink-each" }
 "~/.config/yazi" = { source = "home/.config/yazi", mode = "symlink-each" }
+"~/.config/zed/settings.json" = { source = "home/.config/zed/settings.json", mode = "copy", permissions = "0600" }
 "~/.gitconfig" = { source = "templates/gitconfig.tera", mode = "template" }
 "~/.ssh/config" = { source = "templates/ssh_config.tera", mode = "template", permissions = "0600" }
 

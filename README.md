@@ -4,7 +4,8 @@ Personal macOS dotfiles, deployed with [mise dotfiles](https://mise.jdx.dev/dotf
 
 ## Layout
 
-- `home/` mirrors `~`: every file is symlinked to the same path in your home directory.
+- `home/` mirrors `~`: files are symlinked by default. Zed's settings are copied
+  so Zed can update its local file without writing to the repo.
 - `templates/` holds Tera templates rendered per machine (`~/.gitconfig`, `~/.ssh/config`).
 - `mise.toml` declares every target under `[dotfiles]` and the template `[vars]`.
 - `mise.local.toml` (git-ignored) holds per-machine overrides, e.g. `work = true`.
