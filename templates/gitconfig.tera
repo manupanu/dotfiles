@@ -1,0 +1,35 @@
+[user]
+	name = {{ vars.name }}
+	email = {% if vars.work %}{{ vars.work_email }}{% else %}{{ vars.email }}{% endif %}
+	signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF5pT06+3YIjr2AsW0X6YMnboBtk8f9Ho/w7DJhYvt27
+[gpg]
+	format = ssh
+[gpg "ssh"]
+	program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
+[commit]
+	gpgsign = true
+[init]
+	defaultBranch = "main"
+[core]
+	excludesfile = ~/.config/git/ignore
+[push]
+	autoSetupRemote = true
+	followTags = true
+[pull]
+	rebase = true
+[fetch]
+	prune = true
+	pruneTags = true
+[diff]
+	algorithm = histogram
+	colorMoved = plain
+	mnemonicPrefix = true
+[merge]
+	conflictstyle = zdiff3
+[rebase]
+	autoSquash = true
+	autoStash = true
+[help]
+	autocorrect = prompt
+[url "git@github.com:"]
+	insteadOf = https://github.com/

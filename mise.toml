@@ -1,0 +1,34 @@
+# Dotfiles deployed with `mise dot apply` (see README.md).
+# Per-machine overrides (e.g. `work = true`) go in the git-ignored mise.local.toml.
+
+[vars]
+name = "Manuel Anrig"
+email = "me@manuelanrig.ch"
+work_email = "manuel.anrig@specialized.com"
+work = false
+
+[dotfiles]
+# Files under home/ mirror their location in ~. Directories use symlink-each so
+# app-generated files (history, caches, plugins) stay out of the repository.
+"~/.zshenv" = "home/.zshenv"
+"~/.config/zsh" = { source = "home/.config/zsh", mode = "symlink-each" }
+"~/.config/fish" = { source = "home/.config/fish", mode = "symlink-each" }
+"~/.config/git" = { source = "home/.config/git", mode = "symlink-each" }
+"~/.config/ghostty" = { source = "home/.config/ghostty", mode = "symlink-each" }
+"~/.config/starship.toml" = "home/.config/starship.toml"
+"~/.config/btop" = { source = "home/.config/btop", mode = "symlink-each" }
+"~/.config/fastfetch" = { source = "home/.config/fastfetch", mode = "symlink-each" }
+"~/.config/yazi" = { source = "home/.config/yazi", mode = "symlink-each" }
+"~/.gitconfig" = { source = "templates/gitconfig.tera", mode = "template" }
+"~/.ssh/config" = { source = "templates/ssh_config.tera", mode = "template", permissions = "0600" }
+
+# Configs of tools that are no longer used.
+"~/.config/alacritty/alacritty.toml" = { mode = "absent" }
+
+[tasks.apply]
+description = "Deploy dotfiles"
+run = "mise dot apply"
+
+[tasks.nvim]
+description = "Install the LazyVim starter config if Neovim is not configured"
+run = '[ -d ~/.config/nvim ] || git clone https://github.com/LazyVim/starter ~/.config/nvim'

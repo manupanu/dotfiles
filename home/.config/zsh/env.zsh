@@ -20,6 +20,16 @@ fi
 
 # macOS Homebrew path support
 if [[ "$OSTYPE" == darwin* ]]; then
+  # Trust the installed Cato TLS-inspection CA in Node/Bun; keep verification enabled.
+  export NODE_EXTRA_CA_CERTS="$HOME/.config/certificates/cato-root.pem"
+
+  # Point agent-aware tools at 1Password instead of macOS's default agent.
+  _1password_ssh_sock="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+  if [[ -S "$_1password_ssh_sock" && ( -z "$SSH_AUTH_SOCK" || "$SSH_AUTH_SOCK" == /var/run/com.apple.launchd.*/Listeners ) ]]; then
+    export SSH_AUTH_SOCK="$_1password_ssh_sock"
+  fi
+  unset _1password_ssh_sock
+
   if [[ -x /opt/homebrew/bin/brew ]]; then
     eval "$(/opt/homebrew/bin/brew shellenv)"
   elif [[ -x /usr/local/bin/brew ]]; then
