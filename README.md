@@ -45,3 +45,27 @@ Edit templates in `templates/` and run `mise dot apply`.
 
 fish is the primary shell (`home/.config/fish`). It loads Homebrew, mise, fnm,
 fzf, zoxide, starship, and Copilot completions. The zsh config is kept as a fallback.
+
+### Fish appearance
+
+The Starship prompt, Fish command line, and Ghostty terminal use Catppuccin Mocha:
+
+| To change | Edit |
+| --- | --- |
+| Two-line prompt, modules, and prompt colors | [`home/.config/starship.toml`](home/.config/starship.toml) |
+| Syntax highlighting, autosuggestions, and the Tab completion menu | [`home/.config/fish/conf.d/20-catppuccin-mocha.fish`](home/.config/fish/conf.d/20-catppuccin-mocha.fish) |
+| Font, background, opacity, and terminal palette | [`home/.config/ghostty/config`](home/.config/ghostty/config) |
+
+Edits to already-linked files are visible through their symlinks. When adding a
+new file under `home/.config/fish/`, preview and apply the Fish links from the
+dotfiles repo:
+
+```sh
+mise dot apply --dry-run ~/.config/fish
+mise dot apply ~/.config/fish
+```
+
+Open a new terminal tab or run `fish` to start a fresh interactive shell. Type
+`git` followed by a space, then press Tab to see the completion menu. Start
+typing a command from your history to see its autosuggestion. Fish loads these
+colors per session without saving universal variables.
